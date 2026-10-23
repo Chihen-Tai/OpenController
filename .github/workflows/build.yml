@@ -14,14 +14,16 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
+      # Restore with the Release configuration: the app is self-contained only in Release,
+      # so a default (Debug) restore would not download the Windows desktop runtime pack.
       - name: Restore
-        run: dotnet restore XboxControllerCenter.slnx
+        run: dotnet restore XboxControllerCenter.slnx -p:Configuration=Release
 
       - name: Build (Release)
         run: dotnet build XboxControllerCenter.slnx -c Release --no-restore -warnaserror
@@ -33,15 +35,16 @@ jobs:
         shell: pwsh
         run: ./build/publish.ps1 -SkipTests
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: XboxControllerCenter-win-x64
           path: |
             dist/*.zip
             dist/SHA256SUMS.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results
           path: tests/**/TestResults/*.trx
+          if-no-files-found: ignore
