@@ -1,0 +1,233 @@
+<UserControl x:Class="XboxControllerCenter.App.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:XboxControllerCenter.App.Localization"
+             xmlns:c="clr-namespace:XboxControllerCenter.App.Controls"
+             Style="{StaticResource Page}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="28,20,24,24" c:Ui.StableScroll="True">
+
+            <!-- Page header with status chips -->
+            <DockPanel Margin="0,0,0,16">
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <c:StatusPill Margin="8,0,0,4" Kind="Ok" Text="{l:T Dashboard.Connected}"
+                                  Visibility="{Binding HasControllers, Converter={StaticResource BoolToVis}}" />
+                    <c:StatusPill Margin="8,0,0,4" Kind="Neutral" Text="{l:T Dashboard.NotConnected}"
+                                  Visibility="{Binding HasControllers, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                    <c:StatusPill Margin="8,0,0,4" Kind="Info" Text="{Binding SelectedController.TransportShort}"
+                                  Icon="{Binding SelectedController.TransportIconKey, Converter={x:Static c:ResourceKeyConverter.Instance}}"
+                                  Visibility="{Binding HasControllers, Converter={StaticResource BoolToVis}}" />
+                    <c:StatusPill Margin="8,0,0,4" Kind="Neutral" Text="{Binding ProfileName}" Icon="{StaticResource Icon.Collections}" />
+                </WrapPanel>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource T.PageTitle}" Text="{l:T Nav.Dashboard}" />
+                    <TextBlock Style="{StaticResource T.PageSubtitle}" Text="{Binding SelectedController.Title, FallbackValue=''}" />
+                </StackPanel>
+            </DockPanel>
+
+            <c:AdaptivePanel MinColumnWidth="300" MaxColumns="3">
+
+                <!-- Hero: the live controller -->
+                <c:Card c:AdaptivePanel.ColumnSpan="2" Header="{l:T Dashboard.LiveController}" Icon="{StaticResource Icon.Games}">
+                    <c:Card.Actions>
+                        <CheckBox Content="{l:T Dashboard.ShowOutput}" IsChecked="{Binding Live.ShowOutput}" Margin="0"
+                                  ToolTip="{l:T Dashboard.ShowOutputTip}" />
+                    </c:Card.Actions>
+                    <StackPanel>
+                        <Grid>
+                            <c:ControllerVisual Height="430" State="{Binding Live.Raw}" OutputState="{Binding Live.Output}"
+                                                ShowOutput="{Binding Live.ShowOutput}" IsConnected="{Binding Live.IsLive}"
+                                                ShowGuide="{Binding Live.GuideSupported}" />
+                            <Border HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource Bg.CardRaised}"
+                                    BorderBrush="{DynamicResource Border.Strong}" BorderThickness="1" CornerRadius="8" Padding="16,10"
+                                    Visibility="{Binding Live.IsLive, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
+                                <StackPanel Orientation="Horizontal">
+                                    <c:IconBlock Glyph="{StaticResource Icon.PlugDisconnected}" Foreground="{DynamicResource Text.Secondary}" Margin="0,0,10,0" />
+                                    <TextBlock Text="{Binding StreamText}" Style="{StaticResource T.Body}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <c:TriggerGauge Label="LT" Raw="{Binding Live.LeftTrigger}" Output="{Binding Live.LeftTriggerOut}"
+                                            Threshold="{Binding Live.LeftThreshold}" ToolTip="{l:T Dashboard.TriggerTip}" />
+                            <c:TriggerGauge Grid.Column="2" Label="RT" Raw="{Binding Live.RightTrigger}" Output="{Binding Live.RightTriggerOut}"
+                                            Threshold="{Binding Live.RightThreshold}" ToolTip="{l:T Dashboard.TriggerTip}" />
+                        </Grid>
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Battery + connection -->
+                <StackPanel>
+                    <c:Card Header="{l:T Dashboard.Battery}" Icon="{StaticResource Icon.Battery5}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <c:BatteryGauge Percent="{Binding SelectedController.BatteryPercent, FallbackValue=-1}"
+                                                CoarseSegments="{Binding SelectedController.CoarseSegments, FallbackValue=-1}"
+                                                IsCharging="{Binding SelectedController.IsCharging, FallbackValue=False}"
+                                                IsLow="{Binding SelectedController.IsLowBattery, FallbackValue=False}"
+                                                VerticalAlignment="Center" Margin="0,0,14,0" />
+                                <TextBlock x:Name="BatteryValue" Text="{Binding SelectedController.BatteryValue, FallbackValue='—'}"
+                                           VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="220">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource T.Metric}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedController.HasPercent, FallbackValue=False}" Value="False">
+                                                    <Setter Property="FontSize" Value="19" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                            <c:StatusPill Kind="Warning" Text="{l:T Dashboard.LowBattery}" Icon="{StaticResource Icon.BatteryWarning}"
+                                          HorizontalAlignment="Left" Margin="0,10,0,0"
+                                          Visibility="{Binding SelectedController.IsLowBattery, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" />
+                            <Border Style="{StaticResource Inset}" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding SelectedController.BatterySource, FallbackValue='—'}" Style="{StaticResource T.Body}" />
+                                    <TextBlock Text="{Binding SelectedController.BatteryDetail}" Style="{StaticResource T.Caption}"
+                                               Visibility="{Binding SelectedController.BatteryDetail, Converter={StaticResource NullToVis}, FallbackValue=Collapsed}" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <c:IconBlock Glyph="{StaticResource Icon.Clock}" Width="14" Height="14" Foreground="{DynamicResource Text.Tertiary}" Margin="0,0,6,0" />
+                                        <TextBlock Text="{Binding SelectedController.BatteryFreshness}" Style="{StaticResource T.Caption}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                        <c:IconBlock Glyph="{StaticResource Icon.BatteryCharge}" Width="14" Height="14" Foreground="{DynamicResource Text.Tertiary}" Margin="0,0,6,0" />
+                                        <TextBlock Text="{Binding SelectedController.ChargingText}" Style="{StaticResource T.Caption}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Style="{StaticResource T.Caption}" Margin="0,10,0,0" Text="{l:T Dashboard.BatteryNote}" />
+                        </StackPanel>
+                    </c:Card>
+
+                    <c:Card Header="{l:T Dashboard.Connection}" Icon="{StaticResource Icon.PlugConnected}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Style="{StaticResource KeyText}" Text="{l:T Dashboard.Api}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource ValueText}" Text="{Binding SelectedController.Api, FallbackValue='—'}" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource KeyText}" Text="{l:T Dashboard.Transport}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource ValueText}" Text="{Binding SelectedController.Connection, FallbackValue='—'}" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource KeyText}" Text="{l:T Dashboard.Slot}" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource ValueText}" Text="{Binding SelectedController.Slot, FallbackValue='—'}" />
+                            <TextBlock Grid.Row="3" Style="{StaticResource KeyText}" Text="{l:T Dashboard.Ids}" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource ValueText}" Text="{Binding SelectedController.Ids, FallbackValue='—'}" />
+                            <TextBlock Grid.Row="4" Style="{StaticResource KeyText}" Text="{l:T Dashboard.Capabilities}" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource ValueText}" Text="{Binding SelectedController.Capabilities, FallbackValue='—'}" />
+                        </Grid>
+                    </c:Card>
+                </StackPanel>
+
+                <!-- Sticks -->
+                <c:Card c:AdaptivePanel.ColumnSpan="2" Header="{l:T Dashboard.Sticks}" Icon="{StaticResource Icon.Target}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <DockPanel>
+                            <c:StickPlot DockPanel.Dock="Left" Width="150" Height="150" ShowLegend="False" Data="{Binding Live.LeftPlot}"
+                                         Revision="{Binding Live.Revision}" Margin="0,0,14,0" />
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:T LeftStick}" Style="{StaticResource T.CardTitle}" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource T.Mono}">
+                                    <Run Text="X " Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.LeftXNorm, Mode=OneWay}" />
+                                    <Run Text="  (" Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.LeftXRaw, Mode=OneWay}" Foreground="{DynamicResource Text.Secondary}" /><Run Text=")" Foreground="{DynamicResource Text.Tertiary}" /><LineBreak />
+                                    <Run Text="Y " Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.LeftYNorm, Mode=OneWay}" />
+                                    <Run Text="  (" Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.LeftYRaw, Mode=OneWay}" Foreground="{DynamicResource Text.Secondary}" /><Run Text=")" Foreground="{DynamicResource Text.Tertiary}" /><LineBreak />
+                                    <Run Text="{Binding Live.LeftMagnitude, Mode=OneWay}" Foreground="{DynamicResource Text.Secondary}" /><LineBreak />
+                                    <Run Text="{l:T Plot.Output}" Foreground="{DynamicResource Output}" /><LineBreak />
+                                    <Run Text="{Binding Live.LeftOut, Mode=OneWay}" Foreground="{DynamicResource Output}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Grid.Column="2">
+                            <c:StickPlot DockPanel.Dock="Left" Width="150" Height="150" ShowLegend="False" Data="{Binding Live.RightPlot}"
+                                         Revision="{Binding Live.Revision}" Margin="0,0,14,0" />
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:T RightStick}" Style="{StaticResource T.CardTitle}" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource T.Mono}">
+                                    <Run Text="X " Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.RightXNorm, Mode=OneWay}" />
+                                    <Run Text="  (" Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.RightXRaw, Mode=OneWay}" Foreground="{DynamicResource Text.Secondary}" /><Run Text=")" Foreground="{DynamicResource Text.Tertiary}" /><LineBreak />
+                                    <Run Text="Y " Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.RightYNorm, Mode=OneWay}" />
+                                    <Run Text="  (" Foreground="{DynamicResource Text.Tertiary}" /><Run Text="{Binding Live.RightYRaw, Mode=OneWay}" Foreground="{DynamicResource Text.Secondary}" /><Run Text=")" Foreground="{DynamicResource Text.Tertiary}" /><LineBreak />
+                                    <Run Text="{Binding Live.RightMagnitude, Mode=OneWay}" Foreground="{DynamicResource Text.Secondary}" /><LineBreak />
+                                    <Run Text="{l:T Plot.Output}" Foreground="{DynamicResource Output}" /><LineBreak />
+                                    <Run Text="{Binding Live.RightOut, Mode=OneWay}" Foreground="{DynamicResource Output}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+                    </Grid>
+                </c:Card>
+
+                <!-- Input stream status -->
+                <c:Card Header="{l:T Dashboard.InputStatus}" Icon="{StaticResource Icon.Pulse}">
+                    <StackPanel>
+                        <c:StatusPill Text="{Binding StreamText}" Kind="{Binding StreamKind}" HorizontalAlignment="Left" Margin="0,0,0,10" />
+                        <TextBlock Style="{StaticResource T.Body}" Text="{Binding Live.LastChangeText}" Margin="0,0,0,6" />
+                        <TextBlock Style="{StaticResource T.Caption}" Text="{Binding Live.ChangeRate}" />
+                    </StackPanel>
+                </c:Card>
+
+                <!-- All controllers -->
+                <c:Card c:AdaptivePanel.ColumnSpan="3" Header="{l:T Dashboard.AllControllers}" Icon="{StaticResource Icon.Games}"
+                        Visibility="{Binding HasControllers, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl ItemsSource="{Binding Controllers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Api}" Style="{StaticResource T.Caption}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding BatteryValue}" TextTrimming="CharacterEllipsis" Style="{StaticResource T.Body}" />
+                                    <c:StatusPill Grid.Column="3" Kind="Info" Text="{l:T Dashboard.OutputSource}"
+                                                  Visibility="{Binding IsOutputSource, Converter={StaticResource BoolToVis}}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </c:Card>
+
+                <!-- Battery readings without a controller match -->
+                <c:Card c:AdaptivePanel.ColumnSpan="3" Header="{l:T Dashboard.OtherBatteries}" Icon="{StaticResource Icon.Bluetooth}"
+                        Subtitle="{l:T Dashboard.OtherBatteriesHelp}" Visibility="{Binding HasOtherBatteries, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl ItemsSource="{Binding OtherBatteries}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="2*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Value}" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Source}" Style="{StaticResource T.Caption}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Freshness}" Style="{StaticResource T.Caption}" TextTrimming="CharacterEllipsis" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </c:Card>
+            </c:AdaptivePanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

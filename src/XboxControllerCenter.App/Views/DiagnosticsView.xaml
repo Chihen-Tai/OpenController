@@ -1,0 +1,140 @@
+<UserControl x:Class="XboxControllerCenter.App.Views.DiagnosticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:XboxControllerCenter.App.Localization"
+             xmlns:c="clr-namespace:XboxControllerCenter.App.Controls"
+             Style="{StaticResource Page}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="28,20,24,24" c:Ui.StableScroll="True">
+            <DockPanel Margin="0,0,0,16">
+                <c:StatusPill DockPanel.Dock="Right" VerticalAlignment="Center" Text="{Binding StreamText}" Kind="{Binding StreamKind}" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource T.PageTitle}" Text="{l:T Nav.Calibration}" />
+                    <TextBlock Style="{StaticResource T.PageSubtitle}" Text="{l:T Calib.Subtitle}" />
+                </StackPanel>
+            </DockPanel>
+
+            <c:AdaptivePanel MinColumnWidth="330" MaxColumns="3">
+                <!-- Drift test -->
+                <c:Card c:AdaptivePanel.ColumnSpan="2" Header="{l:T Drift.Title}" Icon="{StaticResource Icon.Target}">
+                    <c:Card.Actions>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource AccentBtn}" Margin="0,0,8,0" c:Ui.Icon="{StaticResource Icon.Play}"
+                                    Content="{l:T Drift.Start}" Command="{Binding Diagnostics.StartDriftCommand}" />
+                            <Button Style="{StaticResource IconBtn}" Margin="0" c:Ui.Icon="{StaticResource Icon.Stop}"
+                                    Content="{l:T Common.Cancel}" Command="{Binding Diagnostics.CancelDriftCommand}" />
+                        </StackPanel>
+                    </c:Card.Actions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource T.Body}" Text="{Binding Diagnostics.DriftStatus}" Margin="0,0,0,8" />
+                        <ProgressBar Height="6" Maximum="1" Value="{Binding Diagnostics.Progress, Mode=OneWay}" Margin="0,0,0,14" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource Inset}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource T.CardTitle}" Text="{l:T LeftStick}" Margin="0,0,0,6" />
+                                    <TextBlock Style="{StaticResource T.Mono}" Text="{Binding Diagnostics.LeftReport}" />
+                                    <TextBlock Style="{StaticResource T.Body}" Foreground="{DynamicResource Output}" Margin="0,8,0,0"
+                                               Text="{Binding Diagnostics.LeftComparison}"
+                                               Visibility="{Binding Diagnostics.LeftComparison, Converter={StaticResource NullToVis}}" />
+                                    <WrapPanel Margin="0,10,0,0">
+                                        <Button Style="{StaticResource Btn}" Content="{l:T Drift.Apply}" Command="{Binding Diagnostics.ApplyLeftCommand}" />
+                                        <Button Style="{StaticResource Btn}" Content="{l:T Drift.ApplyOffset}" Command="{Binding Diagnostics.ApplyLeftOffsetCommand}" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource Inset}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource T.CardTitle}" Text="{l:T RightStick}" Margin="0,0,0,6" />
+                                    <TextBlock Style="{StaticResource T.Mono}" Text="{Binding Diagnostics.RightReport}" />
+                                    <TextBlock Style="{StaticResource T.Body}" Foreground="{DynamicResource Output}" Margin="0,8,0,0"
+                                               Text="{Binding Diagnostics.RightComparison}"
+                                               Visibility="{Binding Diagnostics.RightComparison, Converter={StaticResource NullToVis}}" />
+                                    <WrapPanel Margin="0,10,0,0">
+                                        <Button Style="{StaticResource Btn}" Content="{l:T Drift.Apply}" Command="{Binding Diagnostics.ApplyRightCommand}" />
+                                        <Button Style="{StaticResource Btn}" Content="{l:T Drift.ApplyOffset}" Command="{Binding Diagnostics.ApplyRightOffsetCommand}" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <TextBlock Style="{StaticResource T.Caption}" Margin="0,10,0,0" Text="{l:T Drift.Method}" />
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Center offset (live) -->
+                <c:Card Header="{l:T Calib.Center}" Icon="{StaticResource Icon.Gauge}" Subtitle="{l:T Calib.CenterHelp}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource T.Label}" Text="{l:T LeftStick}" />
+                        <TextBlock Style="{StaticResource T.Mono}" Text="{Binding Diagnostics.LeftCenter}" Margin="0,2,0,12" />
+                        <TextBlock Style="{StaticResource T.Label}" Text="{l:T RightStick}" />
+                        <TextBlock Style="{StaticResource T.Mono}" Text="{Binding Diagnostics.RightCenter}" Margin="0,2,0,0" />
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Stick selector for the plots below -->
+                <Border c:AdaptivePanel.ColumnSpan="3" Style="{StaticResource Inset}" Background="{DynamicResource Bg.Card}">
+                    <WrapPanel>
+                        <TextBlock Text="{l:T Diag.Stick}" VerticalAlignment="Center" Margin="0,0,14,0" Style="{StaticResource T.Caption}" />
+                        <RadioButton GroupName="diagstick" Content="{l:T LeftStick}" Margin="0,0,18,0"
+                                     IsChecked="{Binding Diagnostics.StickIndex, Converter={StaticResource IndexEquals}, ConverterParameter=0}" />
+                        <RadioButton GroupName="diagstick" Content="{l:T RightStick}"
+                                     IsChecked="{Binding Diagnostics.StickIndex, Converter={StaticResource IndexEquals}, ConverterParameter=1}" />
+                    </WrapPanel>
+                </Border>
+
+                <!-- Drift scatter (zoomed) -->
+                <c:Card Header="{l:T Calib.Scatter}" Icon="{StaticResource Icon.DataLine}" Subtitle="{l:T Calib.ScatterHelp}">
+                    <c:StickPlot MaxWidth="320" HorizontalAlignment="Left" Data="{Binding Diagnostics.DriftPlot}" Revision="{Binding Diagnostics.Revision}" />
+                </c:Card>
+
+                <!-- Circularity -->
+                <c:Card Header="{l:T Circle.Title}" Icon="{StaticResource Icon.ArrowSync}">
+                    <c:Card.Actions>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource Btn}" Margin="0,0,8,0" Content="{Binding Diagnostics.CircleButtonText}"
+                                    Command="{Binding Diagnostics.ToggleCircleCommand}" />
+                            <Button Style="{StaticResource Btn}" Margin="0" Content="{l:T Common.Clear}" Command="{Binding Diagnostics.ClearCircleCommand}" />
+                        </StackPanel>
+                    </c:Card.Actions>
+                    <StackPanel>
+                        <c:StickPlot MaxWidth="320" HorizontalAlignment="Left" Data="{Binding Diagnostics.CirclePlot}" Revision="{Binding Diagnostics.Revision}" />
+                        <TextBlock Style="{StaticResource T.Mono}" Margin="0,10,0,0" Text="{Binding Diagnostics.CircleReport}" />
+                        <TextBlock Style="{StaticResource T.Caption}" Margin="0,8,0,0" Text="{l:T Circle.Legend}" />
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Live values -->
+                <c:Card Header="{l:T Diag.Graphs}" Icon="{StaticResource Icon.Pulse}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource T.Mono}" Text="{Binding Diagnostics.CurrentValues}" Margin="0,0,0,10" />
+                        <WrapPanel Margin="0,0,0,6">
+                            <CheckBox Style="{StaticResource Check}" Content="{l:T Diag.ShowRaw}" IsChecked="{Binding Diagnostics.ShowRaw}" />
+                            <CheckBox Style="{StaticResource Check}" Content="{l:T Diag.ShowProcessed}" IsChecked="{Binding Diagnostics.ShowProcessed}" />
+                        </WrapPanel>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition /><RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{l:T Monitor.Window}" VerticalAlignment="Center" Margin="0,0,10,0" Style="{StaticResource T.Caption}" />
+                            <Slider Grid.Column="1" Minimum="1" Maximum="30" Value="{Binding Diagnostics.WindowSeconds}" AutomationProperties.Name="{l:T Monitor.Window}" />
+                            <TextBlock Grid.Row="1" Text="{l:T Diag.Zoom}" VerticalAlignment="Center" Margin="0,0,10,0" Style="{StaticResource T.Caption}" />
+                            <Slider Grid.Row="1" Grid.Column="1" Minimum="1" Maximum="20" Value="{Binding Diagnostics.Zoom}" AutomationProperties.Name="{l:T Diag.Zoom}" />
+                        </Grid>
+                    </StackPanel>
+                </c:Card>
+
+                <c:Card c:AdaptivePanel.ColumnSpan="3" Header="{l:T Calib.History}" Icon="{StaticResource Icon.Pulse}" Subtitle="{l:T Diag.GraphNote}">
+                    <c:TimeSeriesPlot Height="260" Data="{Binding Diagnostics.History}" Revision="{Binding Diagnostics.Revision}" />
+                </c:Card>
+            </c:AdaptivePanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

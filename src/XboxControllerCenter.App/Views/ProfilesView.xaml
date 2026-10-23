@@ -1,0 +1,118 @@
+<UserControl x:Class="XboxControllerCenter.App.Views.ProfilesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:XboxControllerCenter.App.Localization"
+             xmlns:c="clr-namespace:XboxControllerCenter.App.Controls"
+             Style="{StaticResource Page}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="28,20,24,24" c:Ui.StableScroll="True">
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Style="{StaticResource T.PageTitle}" Text="{l:T Nav.Profiles}" />
+                <TextBlock Style="{StaticResource T.PageSubtitle}">
+                    <Run Text="{l:T Profiles.Active}" /><Run Text=" " /><Run Text="{Binding Profiles.ActiveName, Mode=OneWay}" FontWeight="SemiBold" Foreground="{DynamicResource Text.Primary}" />
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Recovery: unreadable settings -->
+            <Border Style="{StaticResource Banner}" Margin="0,0,0,12" Padding="14,12" Visibility="{Binding Profiles.HasSettingsError, Converter={StaticResource BoolToVis}}">
+                <DockPanel>
+                    <c:IconBlock Glyph="{StaticResource Icon.Warning}" Foreground="{DynamicResource Warning}" Margin="0,0,10,0" VerticalAlignment="Top" />
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="{l:T Settings.CorruptTitle}" />
+                        <TextBlock Style="{StaticResource T.Body}" Text="{Binding Profiles.SettingsError}" Margin="0,4,0,8" />
+                        <Button Style="{StaticResource Btn}" Content="{l:T Settings.Recover}" Command="{Binding Profiles.RecoverSettingsCommand}" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Recovery: unreadable profiles -->
+            <Border Style="{StaticResource Banner}" Margin="0,0,0,12" Padding="14,12" Visibility="{Binding Profiles.HasFailures, Converter={StaticResource BoolToVis}}">
+                <DockPanel>
+                    <c:IconBlock Glyph="{StaticResource Icon.Warning}" Foreground="{DynamicResource Warning}" Margin="0,0,10,0" VerticalAlignment="Top" />
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="{l:T Profiles.FailuresTitle}" />
+                        <TextBlock Style="{StaticResource T.Caption}" Margin="0,4,0,8" Text="{l:T Profiles.FailuresHelp}" />
+                        <ItemsControl ItemsSource="{Binding Profiles.Failures}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,4">
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="{l:T Profiles.Quarantine}" Margin="8,0,0,0"
+                                                Command="{Binding DataContext.Profiles.QuarantineCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FilePath}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Error}" Style="{StaticResource T.Caption}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <c:AdaptivePanel MinColumnWidth="320" MaxColumns="3">
+                <!-- Profile list -->
+                <c:Card Header="{l:T Profiles.ListTitle}" Icon="{StaticResource Icon.Collections}">
+                    <StackPanel>
+                        <ListBox ItemsSource="{Binding Profiles.Profiles}" SelectedItem="{Binding Profiles.Selected}" MinHeight="240"
+                                 DisplayMemberPath="Name" Background="Transparent" BorderThickness="0" AutomationProperties.Name="{l:T Profiles.ListTitle}" />
+                        <WrapPanel Margin="0,12,0,0">
+                            <Button Style="{StaticResource AccentBtn}" c:Ui.Icon="{StaticResource Icon.Add}" Content="{l:T Profiles.New}" Command="{Binding Profiles.NewCommand}" />
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.Copy}" Content="{l:T Profiles.Duplicate}" Command="{Binding Profiles.DuplicateCommand}" />
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.ArrowImport}" Content="{l:T Profiles.Import}" Command="{Binding Profiles.ImportCommand}" />
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.ArrowCounterclockwise}" Content="{l:T Profiles.RestorePresets}"
+                                    Command="{Binding Profiles.RestorePresetsCommand}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Selected profile -->
+                <c:Card c:AdaptivePanel.ColumnSpan="2" Header="{Binding Profiles.Selected.Name}" Icon="{StaticResource Icon.Options}">
+                    <StackPanel>
+                        <WrapPanel>
+                            <Button Style="{StaticResource AccentBtn}" c:Ui.Icon="{StaticResource Icon.CheckmarkCircle}" Content="{l:T Profiles.Activate}"
+                                    Command="{Binding Profiles.ActivateCommand}" />
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.ArrowExport}" Content="{l:T Profiles.Export}"
+                                    Command="{Binding Profiles.ExportCommand}" />
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.ArrowCounterclockwise}" Content="{l:T Profiles.Reset}"
+                                    Command="{Binding Profiles.ResetCommand}" />
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.Delete}" Content="{l:T Profiles.Delete}"
+                                    Command="{Binding Profiles.DeleteCommand}" />
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.FolderOpen}" Content="{l:T Profiles.OpenFolder}"
+                                    Command="{Binding Profiles.OpenFolderCommand}" />
+                        </WrapPanel>
+
+                        <TextBlock Text="{l:T Profiles.Rename}" Style="{StaticResource T.Label}" Margin="0,12,0,4" />
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.Rename}" Margin="8,0,0,0"
+                                    Content="{l:T Common.Apply}" Command="{Binding Profiles.RenameCommand}" />
+                            <TextBox Text="{Binding Profiles.NewName, UpdateSourceTrigger=PropertyChanged}" MaxLength="80" AutomationProperties.Name="{l:T Profiles.Rename}" />
+                        </DockPanel>
+
+                        <TextBlock Text="{l:T Profiles.Executables}" Style="{StaticResource T.Label}" Margin="0,16,0,4" />
+                        <TextBlock Style="{StaticResource T.Caption}" Text="{l:T Profiles.ExecutablesHelp}" Margin="0,0,0,6" />
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Margin="8,0,0,0" Content="{l:T Common.Apply}" Command="{Binding Profiles.SaveExecutablesCommand}" />
+                            <TextBox Text="{Binding Profiles.Executables, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{l:T Profiles.Executables}" />
+                        </DockPanel>
+
+                        <TextBlock Text="{l:T Profiles.Controllers}" Style="{StaticResource T.Label}" Margin="0,16,0,6" />
+                        <WrapPanel>
+                            <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.Games}" Content="{l:T Profiles.AssociateController}"
+                                    Command="{Binding Profiles.AssociateControllerCommand}" />
+                            <Button Style="{StaticResource Btn}" Content="{l:T Profiles.ClearControllers}" Command="{Binding Profiles.ClearControllersCommand}" />
+                        </WrapPanel>
+                        <Border Style="{StaticResource Inset}" Margin="0,4,0,0">
+                            <TextBlock Style="{StaticResource T.Mono}" Text="{Binding Profiles.SelectedAssociations}" />
+                        </Border>
+                        <TextBlock Style="{StaticResource T.Caption}" Margin="0,8,0,0" Text="{l:T Profiles.AutoSwitchNote}" />
+
+                        <c:StatusPill Margin="0,12,0,0" HorizontalAlignment="Left" Kind="Ok" Icon="{StaticResource Icon.CheckmarkCircle}"
+                                      Text="{Binding Profiles.Message}" Visibility="{Binding Profiles.Message, Converter={StaticResource NullToVis}}" />
+                    </StackPanel>
+                </c:Card>
+            </c:AdaptivePanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

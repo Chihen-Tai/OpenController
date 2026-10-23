@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>0.1.0</Version>
+    <Authors>Xbox Controller Center contributors</Authors>
+    <Product>Xbox Controller Center</Product>
+    <Copyright>Copyright (C) 2026 Xbox Controller Center contributors. Licensed under GPL-3.0-or-later.</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+</Project>

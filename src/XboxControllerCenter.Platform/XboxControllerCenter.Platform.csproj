@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Windows device I/O: XInput, DirectInput, Bluetooth LE / Windows battery sources,
+    the sampling loop, the optional ViGEm virtual controller and opt-in keyboard output.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <RootNamespace>XboxControllerCenter.Platform</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XboxControllerCenter.Core\XboxControllerCenter.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MIT. DirectInput bindings for generic (non-XInput) gamepads. -->
+    <PackageReference Include="Vortice.DirectInput" Version="3.8.3" />
+    <!-- MIT. Managed client for the (separately installed, archived) ViGEmBus driver. Optional at runtime. -->
+    <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
+  </ItemGroup>
+
+</Project>
