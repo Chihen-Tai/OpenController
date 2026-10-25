@@ -44,6 +44,7 @@ public sealed class MainViewModel : ObservableObject
         Profiles = new ProfilesViewModel(services, () => SelectedController);
         Profiles.InitializeManual(services.Profiles.Active.Id);
         Settings = new SettingsViewModel(services);
+        LinkQuality = new LinkQualityViewModel(services.ConnectionLog);
 
         ProfileName = services.Profiles.Active.Name;
         Guid lastActive = services.Profiles.Active.Id;
@@ -82,6 +83,7 @@ public sealed class MainViewModel : ObservableObject
     public MappingViewModel Mapping { get; }
     public ProfilesViewModel Profiles { get; }
     public SettingsViewModel Settings { get; }
+    public LinkQualityViewModel LinkQuality { get; }
     public ObservableCollection<ControllerItemViewModel> Controllers { get; } = [];
     public ObservableCollection<BatteryDeviceRow> OtherBatteries { get; } = [];
     public ICommand DismissBannerCommand { get; }
@@ -236,6 +238,8 @@ public sealed class MainViewModel : ObservableObject
     private void SlowUpdate(InputSnapshot snap)
     {
         UpdateBatteries();
+        LinkQuality.Update(snap.Find(_selected?.Id));
+        _services.ConnectionLog.SaveIfDirty(TimeSpan.FromSeconds(30));
         StatusText = Loc.T("Status.Sampler", Fmt.N(snap.SamplerRateHz, 1), snap.TargetRateHz,
             snap.HighResolutionTimer ? Loc.T("Status.HighResTimer") : Loc.T("Status.SleepTimer"))
             + "   ·   " + (snap.XInputAvailable ? "XInput ✓" : "XInput ✗")
@@ -251,14 +255,18 @@ public sealed class MainViewModel : ObservableObject
     private void UpdateBatteries()
     {
         BatteryOverview overview = _services.Battery.GetOverview();
+        DateTimeOffset now = DateTimeOffset.Now;
         foreach (ControllerItemViewModel c in Controllers)
         {
             overview.ByController.TryGetValue(c.Id, out ControllerBattery? b);
-            c.UpdateBattery(b);
+            UnpluggedLevel? beforeCharging = b is null ? null : _unpluggedLevels.Update(c.Id, b.Status, now);
+            c.UpdateBattery(b, beforeCharging, now);
+            c.UpdateRuntime(EstimateRuntime(b));
             HandleLowBattery(c, b);
         }
+        ForgetSessionsNotIn(overview);
+        _services.BatteryHistory.SaveIfDirty(TimeSpan.FromMinutes(1));
 
-        DateTimeOffset now = DateTimeOffset.Now;
         var rows = overview.Unassociated
             .Select(r => new BatteryDeviceRow(r.SourceDeviceName ?? r.SourceDeviceId, Fmt.BatteryValue(r), Fmt.SourceName(r.Source),
                 Fmt.Age(now - r.Timestamp)))
@@ -281,6 +289,47 @@ public sealed class MainViewModel : ObservableObject
                 : "Xbox Controller Center\n" + string.Join("\n", Controllers.Select(c => $"{c.Name}: {c.BatteryValue}"));
             Tray.SetTooltip(tip);
         }
+    }
+
+    // One recording session per continuous GATT connection while the app runs.
+    private readonly Dictionary<string, string> _batterySessions = new(StringComparer.Ordinal);
+    private readonly UnpluggedLevelTracker _unpluggedLevels = new();
+
+    /// <summary>
+    /// Records the controller's own GATT percentage and estimates the remaining runtime from the measured drain.
+    /// Only GATT readings are used: they carry a real read time. Coarse or cached sources are never extrapolated.
+    /// </summary>
+    private BatteryLifeEstimate? EstimateRuntime(ControllerBattery? battery)
+    {
+        BatteryStatus? status = battery?.Status;
+        if (status?.Selected is not { Source: BatterySourceKind.BleGatt, Percent: { } percent } reading)
+            return null;
+
+        string key = "gatt:" + reading.SourceDeviceId;
+        if (status.Freshness == BatteryFreshness.Fresh)
+        {
+            if (!_batterySessions.TryGetValue(key, out string? session))
+                _batterySessions[key] = session = Guid.NewGuid().ToString("N");
+            if (_services.BatteryHistory.History.Record(key, new BatterySample(reading.Timestamp, percent, session)))
+                _services.BatteryHistory.MarkDirty();
+        }
+
+        // Allow for the configured poll interval when deciding whether a silence split the measurement.
+        var options = new BatteryEstimatorOptions
+        {
+            MaxGap = TimeSpan.FromSeconds(Math.Max(600, _services.Settings.BatteryPollSeconds * 2.5)),
+        };
+        return BatteryLifeEstimator.Estimate(_services.BatteryHistory.History.For(key), percent, status.Charging, options);
+    }
+
+    private void ForgetSessionsNotIn(BatteryOverview overview)
+    {
+        var live = overview.ByController.Values
+            .Where(b => b.Status.Freshness == BatteryFreshness.Fresh && b.Status.Selected is { Source: BatterySourceKind.BleGatt })
+            .Select(b => "gatt:" + b.Status.Selected!.SourceDeviceId)
+            .ToHashSet(StringComparer.Ordinal);
+        foreach (string key in _batterySessions.Keys.Where(k => !live.Contains(k)).ToList())
+            _batterySessions.Remove(key); // disconnected: the next connection starts a new session
     }
 
     private void HandleLowBattery(ControllerItemViewModel c, ControllerBattery? b)
@@ -324,6 +373,7 @@ public sealed class MainViewModel : ObservableObject
         Mapping.Relocalize();
         Profiles.Relocalize();
         Settings.Relocalize();
+        LinkQuality.Relocalize();
         Tray?.SetMenuText(Loc.T("Tray.Open"), Loc.T("Tray.Exit"));
         OnPropertyChanged(nameof(LanguageToggleText));
         UpdateBatteries();

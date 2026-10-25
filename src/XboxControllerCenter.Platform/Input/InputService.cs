@@ -57,6 +57,9 @@ public sealed class InputService : IDisposable
     /// <summary>Raised on the sampling thread whenever controllers connect, disconnect or change.</summary>
     public event Action<IReadOnlyList<ConnectionEvent>>? ConnectionChanged;
 
+    /// <summary>Raised on the sampling thread when a controller's input stalled while moving (gap in ms).</summary>
+    public event Action<ControllerInfo, double, DateTimeOffset>? StallDetected;
+
     public InputSnapshot Latest => Volatile.Read(ref _latest);
 
     public int SamplingRateHz
@@ -201,14 +204,16 @@ public sealed class InputService : IDisposable
         bool scanChanged = !ReferenceEquals(scan, _appliedScan);
         _appliedScan = scan;
         IReadOnlyList<HidInterfaceInfo> hids = scan?.HidInterfaces ?? [];
+        IReadOnlyList<ushort> usbIds = scan?.UsbMicrosoftProductIds ?? [];
 
-        PollXInput(now, hids, scanChanged, excludedMask, wallNow, events);
+        PollXInput(now, hids, usbIds, scanChanged, excludedMask, wallNow, events);
         PollDirectInput(scan, scanChanged, wallNow, events);
 
         // ---- processing for every connected controller
         Profile profile = Volatile.Read(ref _profile);
         ProcessingSettings processing = Volatile.Read(ref _processing);
         var snapshots = new List<ControllerSnapshot>(_runtime.Count);
+        List<(ControllerInfo Info, double Ms)>? stalls = null;
         foreach (ControllerRuntime rt in _runtime.Values)
         {
             if (!rt.HasState)
@@ -216,11 +221,15 @@ public sealed class InputService : IDisposable
             ProcessedState processed = InputProcessor.Process(rt.Raw, processing);
             OutputFrame output = ButtonRemapper.Apply(processed, profile.ButtonMap);
             if (rt.PacketChanged)
+            {
                 rt.ChangeRate.Record(now);
+                if (rt.Link.OnUpdate(now, rt.Raw) is { } stallMs)
+                    (stalls ??= []).Add((rt.Info, stallMs));
+            }
             rt.History.Add(new InputSample(now, rt.Raw, processed.LeftStick, processed.RightStick,
                 (float)processed.LeftTrigger, (float)processed.RightTrigger));
             snapshots.Add(new ControllerSnapshot(rt.Info, rt.Raw, processed, output, rt.Packet,
-                rt.ChangeRate.RatePerSecond(now), rt.DirectInputRaw, now));
+                rt.ChangeRate.RatePerSecond(now), rt.DirectInputRaw, now, rt.Link.Stats));
         }
 
         snapshots.Sort((a, b) => string.CompareOrdinal(a.Info.Id, b.Info.Id));
@@ -252,9 +261,21 @@ public sealed class InputService : IDisposable
                 Trace.WriteLine($"ConnectionChanged handler failed: {ex}");
             }
         }
+
+        foreach ((ControllerInfo info, double ms) in stalls ?? [])
+        {
+            try
+            {
+                StallDetected?.Invoke(info, ms, wallNow);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"StallDetected handler failed: {ex}");
+            }
+        }
     }
 
-    private void PollXInput(long now, IReadOnlyList<HidInterfaceInfo> hids, bool scanChanged, int excludedMask,
+    private void PollXInput(long now, IReadOnlyList<HidInterfaceInfo> hids, IReadOnlyList<ushort> usbIds, bool scanChanged, int excludedMask,
         DateTimeOffset wallNow, List<ConnectionEvent> events)
     {
         if (!XInputReader.IsAvailable)
@@ -282,15 +303,29 @@ public sealed class InputService : IDisposable
                     membershipChanged = true;
                     _runtime.Remove(id);
                 }
+                st.ScanWaitUntil = 0;
                 st.NextProbe = now + (long)(DisconnectedProbeInterval.TotalSeconds * Stopwatch.Frequency);
                 continue;
             }
 
             if (!st.Connected || (scanChanged && st.Info?.Connection == ConnectionType.Unknown))
             {
-                ControllerInfo info = XInputReader.DescribeSlot(slot, hids);
+                ControllerInfo info = XInputReader.DescribeSlot(slot, hids, usbIds);
+                if (!st.Connected && info.ConnectionEvidence == "GipAmbiguous" && !scanChanged)
+                {
+                    // The current scan predates the controller; a fresh one may find its USB device node. Wait for it
+                    // briefly so the connection is reported (and logged) with the right model and transport.
+                    if (st.ScanWaitUntil == 0)
+                    {
+                        st.ScanWaitUntil = now + Stopwatch.Frequency;
+                        _enumerator.RequestRescan();
+                    }
+                    if (now < st.ScanWaitUntil)
+                        continue;
+                }
                 if (!st.Connected)
                 {
+                    st.ScanWaitUntil = 0;
                     st.Connected = true;
                     membershipChanged = true;
                     st.Info = info;
@@ -460,6 +495,8 @@ public sealed class InputService : IDisposable
         public bool Connected;
         public long NextProbe;
         public ControllerInfo? Info;
+        /// <summary>Non-zero while a new GIP controller waits for a device scan that can identify it.</summary>
+        public long ScanWaitUntil;
     }
 
     private sealed class ControllerRuntime(ControllerInfo info, SampleRing<InputSample> history)
@@ -467,6 +504,7 @@ public sealed class InputService : IDisposable
         public ControllerInfo Info = info;
         public readonly SampleRing<InputSample> History = history;
         public readonly RateMeter ChangeRate = new(Stopwatch.Frequency, TimeSpan.FromSeconds(1));
+        public readonly LinkQualityMonitor Link = new(Stopwatch.Frequency);
         public GamepadState Raw;
         public uint Packet;
         public bool HasState;

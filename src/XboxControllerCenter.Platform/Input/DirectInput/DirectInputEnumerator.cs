@@ -8,7 +8,8 @@ namespace XboxControllerCenter.Platform.Input.DirectInput;
 public sealed record DeviceScanResult(
     IReadOnlyList<HidInterfaceInfo> HidInterfaces,
     IReadOnlyList<DirectInputDeviceDescriptor> DirectInputDevices,
-    string? DirectInputError);
+    string? DirectInputError,
+    IReadOnlyList<ushort> UsbMicrosoftProductIds);
 
 /// <summary>
 /// Scans for devices on its own background thread (enumeration can take tens of milliseconds and must not
@@ -74,6 +75,16 @@ internal sealed class DirectInputEnumerator : IDisposable
             hids = [];
         }
 
+        List<ushort> usbIds;
+        try
+        {
+            usbIds = UsbDevices.PresentMicrosoftProductIds();
+        }
+        catch (Exception)
+        {
+            usbIds = [];
+        }
+
         var devices = new List<DirectInputDeviceDescriptor>();
         if (di is not null)
         {
@@ -93,7 +104,7 @@ internal sealed class DirectInputEnumerator : IDisposable
             }
         }
 
-        return new DeviceScanResult(hids, devices, diError);
+        return new DeviceScanResult(hids, devices, diError, usbIds);
     }
 
     public void Dispose()

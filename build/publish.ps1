@@ -21,6 +21,12 @@ if (-not $SkipTests) {
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
 }
 
+# Running the staged exe in portable mode creates .\data with the user's settings, profiles and battery history.
+# Keep it out of the clean-up and out of the zip, and put it back afterwards.
+$userData = Join-Path $stage 'data'
+$keptData = Join-Path $dist "$name.data.kept"
+if (Test-Path $keptData) { throw "$keptData exists (left over from an interrupted run); move it back to $userData first." }
+if (Test-Path $userData) { Move-Item $userData $keptData }
 if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
 & $dotnet publish (Join-Path $root 'src/XboxControllerCenter.App/XboxControllerCenter.App.csproj') `
     -c $Configuration -r win-x64 --self-contained true -p:PublishSingleFile=true -o $stage
@@ -52,6 +58,7 @@ Set-Content -Path (Join-Path $stage 'portable.txt') -Encoding ascii -Value @(
 $zip = Join-Path $dist "$name.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip
+if (Test-Path $keptData) { Move-Item $keptData $userData }
 
 $exe = Join-Path $stage 'XboxControllerCenter.exe'
 $lines = foreach ($file in @($exe, $zip)) {

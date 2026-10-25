@@ -1,3 +1,4 @@
+using XboxControllerCenter.Diagnostics;
 using XboxControllerCenter.Mapping;
 using XboxControllerCenter.Models;
 using XboxControllerCenter.Platform.Input.DirectInput;
@@ -24,7 +25,9 @@ public sealed record ControllerSnapshot(
     // Rate of reported state changes per second (XInput packet number); see Diagnostics.RateMeter.
     double StateChangeRateHz,
     DirectInputRawState? DirectInputRaw,
-    long Timestamp);
+    long Timestamp,
+    // Update spacing while moving and suspected stalls since this controller connected.
+    LinkQualityStats LinkQuality);
 
 /// <summary>Immutable view of the whole input system at one instant.</summary>
 public sealed record InputSnapshot

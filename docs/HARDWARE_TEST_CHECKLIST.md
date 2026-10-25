@@ -20,13 +20,22 @@ No generic DirectInput gamepad. Items not listed as ✅ below were **not hardwar
 | Windows.Gaming.Input battery for the USB controller | ✅ | Driver reported 1000/1000 mWh, status Idle, wired → shown as 100 % with the raw values. |
 | XInput battery for the USB controller | ✅ | XInput returned BATTERY_TYPE_DISCONNECTED → shown as "no data" (not invented). |
 | Stale Windows Bluetooth battery value suppressed | ✅ | A cached 43 % from the (disconnected) Bluetooth pairing is no longer shown. |
-| Transport reported honestly for GIP devices | ✅ | "Unknown — USB cable or Xbox Wireless Adapter". |
+| Transport reported honestly for GIP devices | ✅ | "Unknown — USB cable or Xbox Wireless Adapter". 2026-10-26: with the USB device node `USB\VID_045E&PID_0B12` present the controller is shown as "Xbox Series X\|S Controller · USB", also in the connection log. |
+| Charging level marked as approximate | ✅ | 2026-10-26: WGI 100/1000 mWh on Bluetooth → 400/1000 right after plugging in; shown as "≈70 %" with "Reads high while charging". |
 | Live language switch EN ↔ 繁體中文 | ✅ | |
 | Graceful shutdown (window close) | ✅ | Log shows ordered teardown. |
-| Bluetooth GATT battery percentage | ☐ | Controller was not connected via Bluetooth. **Not hardware-tested.** |
+| Bluetooth GATT battery percentage | ✅ (2026-10-24) | Re-tested over Bluetooth (PID 0B13): GATT 100 %, later 95 % and 17 %, matching Windows' own Bluetooth battery value (16 %). |
 | Virtual Xbox 360 output, rumble forwarding | ☐ | ViGEmBus not installed. **Not hardware-tested.** |
 | DirectInput generic gamepad | ☐ | No device available. **Not hardware-tested.** |
 | Keyboard output | ☐ | **Not hardware-tested.** |
+
+## Bluetooth / connection quality (2026-10-25)
+
+| Item | Result | Notes |
+|---|---|---|
+| Connection event logged for the Bluetooth controller | ✅ | "Connected · Bluetooth" entry written to `connection-log.json` and shown on the Dashboard. |
+| Disconnect / quick-reconnect entries | ☐ | Not exercised. **Not hardware-tested.** |
+| Update spacing while moving, stall detection | ☐ | Needs a person moving the sticks; verified with synthetic input (unit tests) only. **Not hardware-tested.** |
 
 ## UI redesign checks (2026-10-23)
 

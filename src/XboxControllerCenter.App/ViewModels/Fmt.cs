@@ -81,6 +81,19 @@ internal static class Fmt
         };
     }
 
+    /// <summary>"18 h 20 min" / "45 min" (localized).</summary>
+    public static string Duration(TimeSpan d)
+    {
+        if (d < TimeSpan.Zero)
+            d = TimeSpan.Zero;
+        int hours = (int)d.TotalHours;
+        return hours > 0 ? Loc.T("Duration.HoursMinutes", hours, d.Minutes) : Loc.T("Duration.Minutes", (int)d.TotalMinutes);
+    }
+
+    /// <summary>"12 s" below a minute, otherwise like <see cref="Duration"/>.</summary>
+    public static string ShortDuration(TimeSpan d) =>
+        d.TotalSeconds < 60 ? Loc.T("Duration.Seconds", Math.Max(0, (int)d.TotalSeconds)) : Duration(d);
+
     public static string Age(TimeSpan? age)
     {
         if (age is not { } a)

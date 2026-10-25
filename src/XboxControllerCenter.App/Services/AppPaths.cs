@@ -20,6 +20,8 @@ public sealed class AppPaths
     public string ProfilesDirectory => Path.Combine(Root, "profiles");
     public string SettingsFile => Path.Combine(Root, "settings.json");
     public string LogFile => Path.Combine(Root, "logs", "app.log");
+    public string BatteryHistoryFile => Path.Combine(Root, "battery-history.json");
+    public string ConnectionLogFile => Path.Combine(Root, "connection-log.json");
 
     public static AppPaths Resolve()
     {

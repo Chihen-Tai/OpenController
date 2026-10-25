@@ -26,9 +26,20 @@ public sealed record AppSettings
     /// <summary>Switch profiles automatically based on the foreground application / controller association.</summary>
     public bool AutoSwitchProfiles { get; init; }
     public bool MinimizeToTray { get; init; }
+    /// <summary>Holding L3 + R3 toggles the in-game overlay.</summary>
+    public bool OverlayEnabled { get; init; } = true;
+    /// <summary>Hide the overlay automatically after this many seconds (0 = stay until toggled again; 0..60).</summary>
+    public int OverlayAutoHideSeconds { get; init; }
+    /// <summary>Virtual-key code of the keyboard shortcut that toggles the overlay (0 = none). Default: O.</summary>
+    public int OverlayHotkeyKey { get; init; } = 0x4F;
+    /// <summary>Win32 hotkey modifiers: 1 Alt, 2 Ctrl, 4 Shift, 8 Win. Default: Ctrl + Alt (Ctrl + Shift + O is often taken).</summary>
+    public int OverlayHotkeyModifiers { get; init; } = 2 | 1;
 
     public AppSettings Sanitized() => this with
     {
+        OverlayAutoHideSeconds = Math.Clamp(OverlayAutoHideSeconds, 0, 60),
+        OverlayHotkeyKey = OverlayHotkeyKey is > 0 and < 255 ? OverlayHotkeyKey : 0,
+        OverlayHotkeyModifiers = OverlayHotkeyModifiers & 0xF,
         Language = Language is "zh-TW" ? "zh-TW" : "en",
         Theme = Theme is "light" or "system" ? Theme : "dark",
         SamplingRateHz = Math.Clamp(SamplingRateHz, 60, 1000),
