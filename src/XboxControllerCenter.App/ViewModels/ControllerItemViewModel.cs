@@ -20,6 +20,7 @@ public sealed class ControllerItemViewModel : ObservableObject
     private int _coarseSegments = -1;
     private bool _isCharging;
     private string _batteryDetail = "";
+    private string _chargingNote = "";
 
     public ControllerItemViewModel(ControllerInfo info)
     {
@@ -77,11 +78,20 @@ public sealed class ControllerItemViewModel : ObservableObject
         RaiseAll();
     }
 
-    public void UpdateBattery(ControllerBattery? battery)
+    /// <summary>Why the percentage is not trustworthy right now (charging), or empty.</summary>
+    public string ChargingNote { get => _chargingNote; private set => Set(ref _chargingNote, value); }
+
+    /// <param name="beforeCharging">Level from before the cable was connected (only while charging).</param>
+    public void UpdateBattery(ControllerBattery? battery, UnpluggedLevel? beforeCharging, DateTimeOffset now)
     {
         BatteryStatus status = battery?.Status ?? BatteryStatus.Unavailable;
         BatteryReading? r = status.Selected;
-        BatteryValue = Fmt.BatteryValue(r);
+        // Controllers report an inflated level while charging, so mark it as approximate and say why.
+        bool inflated = status.Charging == ChargingState.Charging && r?.Percent is not null;
+        BatteryValue = inflated ? "≈" + Fmt.BatteryValue(r) : Fmt.BatteryValue(r);
+        ChargingNote = !inflated ? ""
+            : beforeCharging is null ? Loc.T("Battery.ChargingInflated")
+            : Loc.T("Battery.ChargingInflatedBefore", beforeCharging.Percent, Fmt.Age(now - beforeCharging.Time));
         BatterySource = r is null ? Loc.T("Battery.NoSource") : Fmt.SourceName(r.Source);
         BatteryDetail = r is null ? "" : string.Join("  ·  ", new[] { r.Detail, Fmt.Confidence(battery?.Confidence) }.Where(s => !string.IsNullOrEmpty(s)));
         CoarseSegments = r is { Percent: null, IsWired: false } ? r.CoarseLevel switch
@@ -99,6 +109,43 @@ public sealed class ControllerItemViewModel : ObservableObject
         IsStale = status.Freshness == XboxControllerCenter.Battery.BatteryFreshness.Stale;
         BatteryPercent = r?.Percent ?? -1;
         OnPropertyChanged(nameof(HasPercent));
+    }
+
+    private string _runtime = "";
+    private string _runtimeDetail = "";
+    private bool _hasRuntime;
+
+    /// <summary>Estimated remaining runtime (or why there is none yet).</summary>
+    public string RuntimeText { get => _runtime; private set => Set(ref _runtime, value); }
+    public string RuntimeDetail { get => _runtimeDetail; private set => Set(ref _runtimeDetail, value); }
+    /// <summary>False when the battery source cannot support an estimate (no GATT percentage).</summary>
+    public bool HasRuntime { get => _hasRuntime; private set => Set(ref _hasRuntime, value); }
+
+    /// <param name="estimate">Null when the selected battery source is not a GATT percentage.</param>
+    public void UpdateRuntime(BatteryLifeEstimate? estimate)
+    {
+        HasRuntime = estimate is not null;
+        switch (estimate?.State)
+        {
+            case BatteryEstimateState.Estimated:
+                RuntimeText = Loc.T("Runtime.Value", Fmt.Duration(estimate.Remaining!.Value));
+                RuntimeDetail = Loc.T("Runtime.Detail", Fmt.N(estimate.PercentPerHour!.Value, 1), Fmt.Duration(estimate.Observed), estimate.ObservedDrop);
+                break;
+            case BatteryEstimateState.NotEnoughData:
+                RuntimeText = Loc.T("Runtime.NotEnough");
+                RuntimeDetail = estimate.ObservedDrop == 0
+                    ? Loc.T("Runtime.NoChangeDetail", Fmt.Duration(estimate.Tracked))
+                    : Loc.T("Runtime.NotEnoughDetail", Fmt.Duration(estimate.Observed), estimate.ObservedDrop);
+                break;
+            case BatteryEstimateState.Charging:
+                RuntimeText = Loc.T("Runtime.Charging");
+                RuntimeDetail = "";
+                break;
+            default:
+                RuntimeText = Loc.T("Runtime.Unsupported");
+                RuntimeDetail = "";
+                break;
+        }
     }
 
     public void Relocalize() => RaiseAll();

@@ -58,4 +58,33 @@ public static class ControllerCatalog
         name = string.Empty;
         return false;
     }
+
+    /// <summary>
+    /// Identifies a controller that XInput only reports as <see cref="GipGenericProductId"/>. A cable-connected
+    /// Xbox One / Series controller still enumerates as a USB device with its real product ID
+    /// (observed: USB\VID_045E&amp;PID_0B12 next to HID\VID_045E&amp;PID_02FF&amp;IG_00). When exactly one GIP
+    /// controller is present and exactly one such USB device exists, they are the same controller on USB.
+    /// Anything else (several controllers, an Xbox Wireless Adapter without a USB controller) stays unresolved.
+    /// </summary>
+    /// <param name="usbMicrosoftProductIds">Product IDs of present USB devices with the Microsoft vendor ID.</param>
+    /// <param name="gipControllerCount">Number of present XInput HID interfaces with the GIP generic product ID.</param>
+    /// <param name="family">Family of the identified controller.</param>
+    /// <param name="name">Catalog name of the identified controller.</param>
+    public static bool TryResolveGipOverUsb(IEnumerable<ushort> usbMicrosoftProductIds, int gipControllerCount,
+        out ControllerFamily family, out string name)
+    {
+        family = ControllerFamily.Unknown;
+        name = string.Empty;
+        if (gipControllerCount != 1)
+            return false;
+
+        var wired = usbMicrosoftProductIds.Distinct()
+            .Where(p => s_microsoft.TryGetValue(p, out var e) && e.Transport == ConnectionType.Usb && e.Family != ControllerFamily.Xbox360)
+            .ToList();
+        if (wired.Count != 1)
+            return false;
+
+        (family, _, name) = s_microsoft[wired[0]];
+        return true;
+    }
 }

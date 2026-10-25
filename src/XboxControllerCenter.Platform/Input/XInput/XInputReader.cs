@@ -37,7 +37,8 @@ public static class XInputReader
     /// <summary>Builds the static description of a connected slot.</summary>
     /// <param name="slot">XInput user index.</param>
     /// <param name="hidInterfaces">Current HID game-controller interfaces (for transport detection).</param>
-    public static ControllerInfo DescribeSlot(int slot, IReadOnlyList<HidInterfaceInfo> hidInterfaces)
+    /// <param name="usbMicrosoftProductIds">Product IDs of present Microsoft USB devices (identifies GIP controllers on a cable).</param>
+    public static ControllerInfo DescribeSlot(int slot, IReadOnlyList<HidInterfaceInfo> hidInterfaces, IReadOnlyList<ushort> usbMicrosoftProductIds)
     {
         XInputNative.GetCapabilities(slot, out XInputNative.XINPUT_CAPABILITIES caps);
         ushort? vid = null, pid = null;
@@ -70,8 +71,19 @@ public static class XInputReader
             {
                 // Observed on real hardware: a USB-connected Xbox Series controller reports PID 02FF through both
                 // XInput and its HID path, exactly like a controller on an Xbox Wireless Adapter would, so the path
-                // proves nothing about the transport.
-                evidence = "GipAmbiguous";
+                // proves nothing about the transport. The USB device node of a cabled controller does.
+                int gipControllers = hidInterfaces.Count(h => h.IsXInput && ControllerCatalog.IsGipGeneric(h.VendorId, h.ProductId));
+                if (ControllerCatalog.TryResolveGipOverUsb(usbMicrosoftProductIds, gipControllers, out ControllerFamily usbFamily, out string usbName))
+                {
+                    family = usbFamily;
+                    name = usbName;
+                    connection = ConnectionType.Usb;
+                    evidence = "GipUsbDevice";
+                }
+                else
+                {
+                    evidence = "GipAmbiguous";
+                }
             }
             else if (connection == ConnectionType.Unknown)
             {

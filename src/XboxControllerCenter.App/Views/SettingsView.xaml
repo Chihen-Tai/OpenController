@@ -98,6 +98,37 @@
                     </StackPanel>
                 </c:Card>
 
+                <c:Card Header="{l:T Settings.Overlay}" Icon="{StaticResource Icon.Games}" Subtitle="{l:T Settings.OverlayNote}">
+                    <StackPanel>
+                        <CheckBox Style="{StaticResource Check}" Margin="0,0,0,4" Content="{l:T Settings.OverlayEnabled}" IsChecked="{Binding Settings.OverlayEnabled}" />
+                        <Grid Style="{StaticResource Row}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{l:T Settings.OverlayHotkey}" VerticalAlignment="Center" />
+                            <c:HotkeyCaptureBox Grid.Column="1" Width="200" HorizontalAlignment="Left" Hotkey="{Binding Settings.OverlayHotkey}"
+                                                ToolTip="{l:T Settings.OverlayHotkeyTip}" AutomationProperties.Name="{l:T Settings.OverlayHotkey}" />
+                        </Grid>
+                        <TextBlock Style="{StaticResource T.Caption}" Text="{l:T Settings.OverlayHotkeyTip}" Margin="0,2,0,4" />
+                        <c:StatusPill Kind="Warning" Icon="{StaticResource Icon.Warning}" Text="{l:T Settings.OverlayHotkeyInUse}" HorizontalAlignment="Left"
+                                      Margin="0,0,0,4" Visibility="{Binding Settings.OverlayHotkeyInUse, Converter={StaticResource BoolToVis}}" />
+                        <Grid Style="{StaticResource Row}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="90" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{l:T Settings.OverlayAutoHide}" VerticalAlignment="Center" />
+                            <Slider Grid.Column="1" Minimum="0" Maximum="60" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding Settings.OverlayAutoHideSeconds}"
+                                    AutomationProperties.Name="{l:T Settings.OverlayAutoHide}" />
+                            <TextBlock Grid.Column="2" Text="{Binding Settings.OverlayAutoHideText}" VerticalAlignment="Center" Margin="10,0,0,0" Style="{StaticResource T.Mono}" />
+                        </Grid>
+                        <Button Style="{StaticResource IconBtn}" c:Ui.Icon="{StaticResource Icon.Eye}" Content="{l:T Settings.OverlayPreview}"
+                                Command="{Binding Settings.ToggleOverlayCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                    </StackPanel>
+                </c:Card>
+
                 <c:Card Header="{l:T Settings.Storage}" Icon="{StaticResource Icon.FolderOpen}" Subtitle="{l:T Settings.StorageNote}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource T.Body}" Text="{Binding Settings.StorageMode}" />

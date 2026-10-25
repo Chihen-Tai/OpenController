@@ -11,6 +11,7 @@ public partial class App : Application
 {
     private AppServices? _services;
     private TrayIcon? _tray;
+    private OverlayService? _overlay;
     private MainWindow? _window;
     private bool _exited;
 
@@ -48,8 +49,11 @@ public partial class App : Application
         _tray = new TrayIcon(() => _window.ShowFromTray(), ExitApplication);
         _tray.SetMenuText(Loc.T("Tray.Open"), Loc.T("Tray.Exit"));
         vm.Tray = _tray;
+        _overlay = new OverlayService(_services, vm);
+        vm.Settings.Overlay = _overlay;
         MainWindow = _window;
         _window.Show();
+        _overlay.Start();
     }
 
     /// <summary>Orderly shutdown: neutral outputs, stop threads, save, remove tray icon.</summary>
@@ -62,6 +66,7 @@ public partial class App : Application
             return;
         _exited = true;
         _window?.PrepareExit();
+        _overlay?.Dispose();
         _tray?.Dispose();
         _services?.Dispose();
         if (closeWindow)
@@ -72,6 +77,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         // Covers session end / Shutdown() paths that did not go through ExitApplication().
+        _overlay?.Dispose();
         _tray?.Dispose();
         _services?.Dispose();
         base.OnExit(e);

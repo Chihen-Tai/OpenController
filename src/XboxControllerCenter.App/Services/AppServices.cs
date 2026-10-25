@@ -26,6 +26,9 @@ public sealed class AppServices : IDisposable
         Input = new InputService { SamplingRateHz = Settings.SamplingRateHz };
         Profiles = new ProfileManager(new ProfileStore(Paths.ProfilesDirectory), Input, Settings.ActiveProfileId);
 
+        BatteryHistory = new BatteryHistoryStore(Paths.BatteryHistoryFile);
+        ConnectionLog = new ConnectionLogStore(Paths.ConnectionLogFile);
+        ConnectionLog.Attach(Input);
         Battery = new BatteryService(Input)
         {
             PollInterval = TimeSpan.FromSeconds(Settings.BatteryPollSeconds),
@@ -52,6 +55,8 @@ public sealed class AppServices : IDisposable
     public string? SettingsError { get; private set; }
     public InputService Input { get; }
     public BatteryService Battery { get; }
+    public BatteryHistoryStore BatteryHistory { get; }
+    public ConnectionLogStore ConnectionLog { get; }
     public ProfileManager Profiles { get; }
     public KeyboardOutput Keyboard { get; }
     public VirtualControllerService Virtual { get; }
@@ -133,6 +138,8 @@ public sealed class AppServices : IDisposable
         // 3. Persist.
         _settingsSaveTimer.Dispose();
         Profiles.FlushSaves();
+        BatteryHistory.SaveIfDirty();
+        ConnectionLog.SaveIfDirty();
         SaveSettings();
         FileLog.Write("--- shutdown complete ---");
         FileLog.Close();
