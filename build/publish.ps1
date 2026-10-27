@@ -1,5 +1,5 @@
 # Builds, tests and packages the portable Windows x64 distribution.
-#   ./build/publish.ps1                 -> dist/XboxControllerCenter-<version>-win-x64.zip + SHA256SUMS.txt
+#   ./build/publish.ps1                 -> dist/OpenController-<version>-win-x64.zip + SHA256SUMS.txt
 #   ./build/publish.ps1 -SkipTests
 # Requires the .NET 10 SDK (dotnet on PATH, or DOTNET_ROOT pointing to it).
 param(
@@ -12,12 +12,12 @@ $dotnet = if ($env:DOTNET_ROOT -and (Test-Path (Join-Path $env:DOTNET_ROOT 'dotn
 
 [xml]$props = Get-Content (Join-Path $root 'Directory.Build.props')
 $version = $props.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
-$name = "XboxControllerCenter-$version-win-x64"
+$name = "OpenController-$version-win-x64"
 $dist = Join-Path $root 'dist'
 $stage = Join-Path $dist $name
 
 if (-not $SkipTests) {
-    & $dotnet test (Join-Path $root 'tests/XboxControllerCenter.Core.Tests') -c $Configuration
+    & $dotnet test (Join-Path $root 'tests/OpenController.Core.Tests') -c $Configuration
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
 }
 
@@ -28,7 +28,7 @@ $keptData = Join-Path $dist "$name.data.kept"
 if (Test-Path $keptData) { throw "$keptData exists (left over from an interrupted run); move it back to $userData first." }
 if (Test-Path $userData) { Move-Item $userData $keptData }
 if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
-& $dotnet publish (Join-Path $root 'src/XboxControllerCenter.App/XboxControllerCenter.App.csproj') `
+& $dotnet publish (Join-Path $root 'src/OpenController.App/OpenController.App.csproj') `
     -c $Configuration -r win-x64 --self-contained true -p:PublishSingleFile=true -o $stage
 if ($LASTEXITCODE -ne 0) { throw 'Publish failed.' }
 
@@ -51,16 +51,16 @@ foreach ($pair in @(@('LICENSE.txt', 'dotnet-LICENSE.txt'), @('ThirdPartyNotices
 
 # Portable mode marker: settings are stored in .\data next to the executable when the folder is writable.
 Set-Content -Path (Join-Path $stage 'portable.txt') -Encoding ascii -Value @(
-    'Portable mode marker for Xbox Controller Center.',
+    'Portable mode marker for OpenController.',
     'While this file exists and this folder is writable, settings and profiles are stored in .\data.',
-    'Delete this file to store them in %LOCALAPPDATA%\XboxControllerCenter instead.')
+    'Delete this file to store them in %LOCALAPPDATA%\OpenController instead.')
 
 $zip = Join-Path $dist "$name.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip
 if (Test-Path $keptData) { Move-Item $keptData $userData }
 
-$exe = Join-Path $stage 'XboxControllerCenter.exe'
+$exe = Join-Path $stage 'OpenController.exe'
 $lines = foreach ($file in @($exe, $zip)) {
     $hash = (Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $(Split-Path $file -Leaf)"

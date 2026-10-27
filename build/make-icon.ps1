@@ -1,7 +1,7 @@
-# Generates src/XboxControllerCenter.App/Assets/app.ico from scratch (no third-party artwork).
+# Generates src/OpenController.App/Assets/app.ico from scratch (no third-party artwork).
 # The output is an original drawing covered by the project's GPL-3.0-or-later license.
 # Usage (Windows PowerShell 5.1 or PowerShell 7 on Windows):  ./build/make-icon.ps1
-param([string]$Out = (Join-Path $PSScriptRoot '..\src\XboxControllerCenter.App\Assets\app.ico'))
+param([string]$Out = (Join-Path $PSScriptRoot '..\src\OpenController.App\Assets\app.ico'))
 
 Add-Type -AssemblyName System.Drawing
 

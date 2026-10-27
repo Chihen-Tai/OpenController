@@ -1,0 +1,100 @@
+<UserControl x:Class="OpenController.App.Views.SimpleView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:OpenController.App.Localization"
+             xmlns:c="clr-namespace:OpenController.App.Controls"
+             Style="{StaticResource Page}">
+    <!-- Simple mode: the live controller, battery, a one-button drift fix and the profile picker. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="28,20,24,24" c:Ui.StableScroll="True">
+
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Style="{StaticResource T.PageTitle}" Text="{l:T Simple.Title}" />
+                <TextBlock Style="{StaticResource T.PageSubtitle}" Text="{l:T Simple.Subtitle}" />
+            </StackPanel>
+
+            <c:AdaptivePanel MinColumnWidth="320" MaxColumns="3">
+
+                <!-- Live controller with name, connection and battery -->
+                <c:Card c:AdaptivePanel.ColumnSpan="2" Header="{Binding SelectedController.Name, FallbackValue=''}" Icon="{StaticResource Icon.Games}">
+                    <StackPanel>
+                        <Grid>
+                            <c:ControllerVisual Height="360" State="{Binding Live.Raw}" OutputState="{Binding Live.Output}"
+                                                IsConnected="{Binding Live.IsLive}" ShowGuide="{Binding Live.GuideSupported}"
+                                                Family="{Binding Live.Family}" />
+                            <Border HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource Bg.CardRaised}"
+                                    BorderBrush="{DynamicResource Border.Strong}" BorderThickness="1" CornerRadius="8" Padding="16,10"
+                                    Visibility="{Binding HasControllers, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
+                                <StackPanel Orientation="Horizontal">
+                                    <c:IconBlock Glyph="{StaticResource Icon.PlugDisconnected}" Foreground="{DynamicResource Text.Secondary}" Margin="0,0,10,0" />
+                                    <TextBlock Text="{l:T Simple.NoController}" Style="{StaticResource T.Body}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <WrapPanel Margin="0,12,0,0" Visibility="{Binding HasControllers, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,32,8">
+                                <c:BatteryGauge Percent="{Binding SelectedController.BatteryPercent, FallbackValue=-1}"
+                                                CoarseSegments="{Binding SelectedController.CoarseSegments, FallbackValue=-1}"
+                                                IsCharging="{Binding SelectedController.IsCharging, FallbackValue=False}"
+                                                IsLow="{Binding SelectedController.IsLowBattery, FallbackValue=False}"
+                                                VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Style="{StaticResource T.Label}" Text="{l:T Simple.Battery}" />
+                                    <TextBlock Style="{StaticResource T.Body}" FontSize="18" FontWeight="SemiBold"
+                                               Text="{Binding SelectedController.BatteryValue, FallbackValue='—'}" />
+                                    <TextBlock Style="{StaticResource T.Caption}" Text="{Binding SelectedController.RuntimeText}"
+                                               Visibility="{Binding SelectedController.HasRuntime, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <c:IconBlock Glyph="{Binding SelectedController.TransportIconKey, Converter={x:Static c:ResourceKeyConverter.Instance}}"
+                                             Width="22" Height="22" Foreground="{DynamicResource Text.Secondary}" Margin="0,0,12,0" VerticalAlignment="Center" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Style="{StaticResource T.Label}" Text="{l:T Simple.Connection}" />
+                                    <TextBlock Style="{StaticResource T.Body}" FontSize="18" FontWeight="SemiBold"
+                                               Text="{Binding SelectedController.TransportShort, FallbackValue='—'}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </WrapPanel>
+                        <c:StatusPill Kind="Warning" Text="{l:T Dashboard.LowBattery}" Icon="{StaticResource Icon.BatteryWarning}"
+                                      HorizontalAlignment="Left" Margin="0,4,0,0"
+                                      Visibility="{Binding SelectedController.IsLowBattery, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </c:Card>
+
+                <StackPanel>
+                    <!-- One-button drift check and fix -->
+                    <c:Card Header="{l:T Simple.DriftTitle}" Icon="{StaticResource Icon.Target}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource T.Body}" TextWrapping="Wrap" Text="{l:T Simple.DriftHint}" Margin="0,0,0,12" />
+                            <WrapPanel Margin="0,0,0,12">
+                                <Button Style="{StaticResource AccentBtn}" Margin="0,0,8,4" c:Ui.Icon="{StaticResource Icon.Play}"
+                                        Content="{l:T Simple.DriftStart}" Command="{Binding Diagnostics.StartDriftCommand}" />
+                                <Button Style="{StaticResource Btn}" Margin="0,0,0,4" c:Ui.Icon="{StaticResource Icon.CheckmarkCircle}"
+                                        Content="{l:T Simple.DriftApply}" Command="{Binding Diagnostics.ApplyBothCommand}" />
+                            </WrapPanel>
+                            <ProgressBar Height="6" Maximum="1" Value="{Binding Diagnostics.Progress, Mode=OneWay}" Margin="0,0,0,10" />
+                            <TextBlock Style="{StaticResource T.Body}" TextWrapping="Wrap" Text="{Binding Diagnostics.DriftStatus}" />
+                            <TextBlock Style="{StaticResource T.Body}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,8,0,0"
+                                       Text="{Binding Diagnostics.SimpleResult}" />
+                        </StackPanel>
+                    </c:Card>
+
+                    <!-- Profile picker -->
+                    <c:Card Header="{l:T Simple.ProfileTitle}" Icon="{StaticResource Icon.Collections}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <ComboBox ItemsSource="{Binding Profiles.Profiles}" SelectedItem="{Binding QuickProfile}" DisplayMemberPath="Name"
+                                      AutomationProperties.Name="{l:T Simple.ProfileTitle}" Margin="0,0,0,10" />
+                            <TextBlock Style="{StaticResource T.Caption}" TextWrapping="Wrap" Text="{l:T Simple.ProfileHint}" />
+                        </StackPanel>
+                    </c:Card>
+
+                    <!-- In-game overlay hint -->
+                    <c:Card Header="{l:T Simple.OverlayTitle}" Icon="{StaticResource Icon.Eye}">
+                        <TextBlock Style="{StaticResource T.Body}" TextWrapping="Wrap" Text="{l:T Simple.OverlayHint}" />
+                    </c:Card>
+                </StackPanel>
+            </c:AdaptivePanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

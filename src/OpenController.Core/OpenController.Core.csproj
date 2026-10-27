@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Platform-independent core: models, input-processing mathematics, diagnostics,
+    remapping, profiles and battery-source selection. No Windows APIs here, so the
+    whole project is unit-testable on any OS.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>OpenController</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenController.Core.Tests" />
+  </ItemGroup>
+
+</Project>

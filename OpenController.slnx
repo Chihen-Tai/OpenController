@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OpenController.App/OpenController.App.csproj" />
+    <Project Path="src/OpenController.Core/OpenController.Core.csproj" />
+    <Project Path="src/OpenController.Platform/OpenController.Platform.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OpenController.Core.Tests/OpenController.Core.Tests.csproj" />
+  </Folder>
+</Solution>

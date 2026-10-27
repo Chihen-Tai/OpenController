@@ -12,8 +12,16 @@
   controller on USB. Otherwise (several controllers, Xbox Wireless Adapter) the app says it cannot tell.
 - **Polling rate:** XInput exposes no report-rate API. The app shows the rate of *state changes* (packet number
   changes) observed while sampling; it is a lower bound and is zero while the controller is idle.
-- **DirectInput layouts** are not standardized. Defaults follow the common Xbox-like order; other pads need
-  remapping. DirectInput force feedback is not implemented.
+- **DirectInput layouts** are not standardized. DualShock 4, DualSense, DualSense Edge and the Switch Pro Controller
+  are recognized by VID/PID and get their real button order, positionally matched to Xbox (Cross = A, Nintendo B = A);
+  other pads use the common Xbox-like order and may need remapping. DirectInput force feedback is not implemented.
+- **PlayStation / Switch extras** are not read: no battery, touchpad position, gyro, lightbar, adaptive triggers or
+  rumble (Windows only exposes them through the controllers' vendor HID reports, not DirectInput). The touchpad
+  *click* is shown as the Share/extra button.
+- **Switch Pro over USB** sends no input until a driver performs Nintendo's USB handshake; use Bluetooth. Joy-Cons are
+  not given a layout.
+- **Steam Input / DS4Windows** may hide the controller or add a virtual Xbox controller, which then shows up as a
+  second (XInput) device.
 - XInput supports at most 4 controllers.
 
 ## Battery

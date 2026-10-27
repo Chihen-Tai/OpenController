@@ -3,10 +3,10 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.2.0</Version>
-    <Authors>Xbox Controller Center contributors</Authors>
-    <Product>Xbox Controller Center</Product>
-    <Copyright>Copyright (C) 2026 Xbox Controller Center contributors. Licensed under GPL-3.0-or-later.</Copyright>
+    <Version>0.3.0</Version>
+    <Authors>OpenController contributors</Authors>
+    <Product>OpenController</Product>
+    <Copyright>Copyright (C) 2026 OpenController contributors. Licensed under GPL-3.0-or-later.</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     <Deterministic>true</Deterministic>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

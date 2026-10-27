@@ -1,0 +1,198 @@
+<UserControl x:Class="OpenController.App.Views.MonitorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:OpenController.App.Localization"
+             xmlns:c="clr-namespace:OpenController.App.Controls"
+             Style="{StaticResource Page}">
+    <UserControl.Resources>
+        <!-- Key/value table for one stick -->
+        <Style x:Key="Cell" TargetType="TextBlock" BasedOn="{StaticResource T.Mono}">
+            <Setter Property="Margin" Value="0,2,12,2" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+        </Style>
+        <Style x:Key="HeadCell" TargetType="TextBlock" BasedOn="{StaticResource T.Label}">
+            <Setter Property="Margin" Value="0,0,12,4" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="28,20,24,24" c:Ui.StableScroll="True">
+            <DockPanel Margin="0,0,0,16">
+                <c:StatusPill DockPanel.Dock="Right" VerticalAlignment="Center" Text="{Binding StreamText}" Kind="{Binding StreamKind}" />
+                <StackPanel>
+                    <TextBlock Style="{StaticResource T.PageTitle}" Text="{l:T Nav.Monitor}" />
+                    <TextBlock Style="{StaticResource T.PageSubtitle}" Text="{Binding Live.ChangeRate}" />
+                </StackPanel>
+            </DockPanel>
+
+            <c:AdaptivePanel MinColumnWidth="290" MaxColumns="3">
+                <!-- Left stick -->
+                <c:Card Header="{l:T LeftStick}" Icon="{StaticResource Icon.Target}">
+                    <StackPanel>
+                        <c:StickPlot MaxWidth="260" HorizontalAlignment="Left" Data="{Binding Live.LeftPlot}" Revision="{Binding Live.Revision}" />
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition /><RowDefinition /><RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Style="{StaticResource HeadCell}" Text="" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource HeadCell}" Text="{l:T Monitor.Raw}" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource HeadCell}" Text="{l:T Monitor.Norm}" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource HeadCell}" Text="X" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Cell}" Text="{Binding Live.LeftXRaw}" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource Cell}" Text="{Binding Live.LeftXNorm}" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource HeadCell}" Text="Y" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource Cell}" Text="{Binding Live.LeftYRaw}" />
+                            <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource Cell}" Text="{Binding Live.LeftYNorm}" />
+                        </Grid>
+                        <TextBlock Style="{StaticResource T.Caption}" Text="{Binding Live.LeftMagnitude}" Margin="0,4,0,0" />
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Right stick -->
+                <c:Card Header="{l:T RightStick}" Icon="{StaticResource Icon.Target}">
+                    <StackPanel>
+                        <c:StickPlot MaxWidth="260" HorizontalAlignment="Left" Data="{Binding Live.RightPlot}" Revision="{Binding Live.Revision}" />
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition /><RowDefinition /><RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Style="{StaticResource HeadCell}" Text="" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource HeadCell}" Text="{l:T Monitor.Raw}" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource HeadCell}" Text="{l:T Monitor.Norm}" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource HeadCell}" Text="X" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Cell}" Text="{Binding Live.RightXRaw}" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource Cell}" Text="{Binding Live.RightXNorm}" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource HeadCell}" Text="Y" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource Cell}" Text="{Binding Live.RightYRaw}" />
+                            <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource Cell}" Text="{Binding Live.RightYNorm}" />
+                        </Grid>
+                        <TextBlock Style="{StaticResource T.Caption}" Text="{Binding Live.RightMagnitude}" Margin="0,4,0,0" />
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Triggers + buttons -->
+                <StackPanel>
+                    <c:Card Header="{l:T Monitor.Triggers}" Icon="{StaticResource Icon.Gauge}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <c:TriggerGauge Label="LT" Raw="{Binding Live.LeftTrigger}" Output="{Binding Live.LeftTriggerOut}"
+                                            Threshold="{Binding Live.LeftThreshold}" Margin="0,0,0,10" />
+                            <c:TriggerGauge Label="RT" Raw="{Binding Live.RightTrigger}" Output="{Binding Live.RightTriggerOut}"
+                                            Threshold="{Binding Live.RightThreshold}" />
+                            <TextBlock Style="{StaticResource T.Caption}" Margin="0,8,0,0" Text="{l:T Monitor.TriggerLegend}" />
+                        </StackPanel>
+                    </c:Card>
+                    <c:Card Header="{l:T Monitor.Buttons}" Icon="{StaticResource Icon.Games}">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding Live.Buttons}" Focusable="False">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border x:Name="Chip" Style="{StaticResource Chip}">
+                                            <Grid>
+                                                <TextBlock x:Name="Label" Text="{Binding Name}" HorizontalAlignment="Center"
+                                                           Foreground="{DynamicResource Text.Secondary}" FontSize="12" />
+                                                <Ellipse x:Name="OutDot" Width="5" Height="5" Fill="{DynamicResource Output}"
+                                                         HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-4,0" Visibility="Hidden" />
+                                            </Grid>
+                                        </Border>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Pressed}" Value="True">
+                                                <Setter TargetName="Chip" Property="Background" Value="{DynamicResource Accent}" />
+                                                <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                <Setter TargetName="Label" Property="Foreground" Value="{DynamicResource Accent.OnAccent}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding OutputPressed}" Value="True">
+                                                <Setter TargetName="OutDot" Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Style="{StaticResource T.Caption}" Text="{l:T Monitor.ButtonsNote}" />
+                        </StackPanel>
+                    </c:Card>
+                </StackPanel>
+
+                <!-- Deadzone before / after -->
+                <c:Card c:AdaptivePanel.ColumnSpan="3" Header="{l:T Monitor.Compare}" Icon="{StaticResource Icon.DataLine}"
+                        Subtitle="{l:T Monitor.CompareHelp}">
+                    <Grid Grid.IsSharedSizeScope="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource HeadCell}" Text="{l:T Monitor.Axis}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource HeadCell}" Text="{l:T Monitor.RawUnits}" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource HeadCell}" Text="{l:T Monitor.Normalized}" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource HeadCell}" Text="{l:T Monitor.Processed}" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource HeadCell}" Text="{l:T Monitor.OutputUnits}" />
+                        </Grid>
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding Live.Axes}" Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{DynamicResource Border.Card}" BorderThickness="0,1,0,0" Padding="0,3">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Name}" Style="{StaticResource Cell}" FontWeight="SemiBold" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Raw}" Style="{StaticResource Cell}" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Normalized}" Style="{StaticResource Cell}" />
+                                            <TextBlock x:Name="Processed" Grid.Column="3" Text="{Binding Processed}" Style="{StaticResource Cell}" />
+                                            <TextBlock x:Name="Out" Grid.Column="4" Text="{Binding Output}" Style="{StaticResource Cell}" />
+                                        </Grid>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Changed}" Value="True">
+                                            <Setter TargetName="Processed" Property="Foreground" Value="{DynamicResource Output}" />
+                                            <Setter TargetName="Out" Property="Foreground" Value="{DynamicResource Output}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </c:Card>
+
+                <!-- History -->
+                <c:Card c:AdaptivePanel.ColumnSpan="3" Header="{l:T Monitor.History}" Icon="{StaticResource Icon.Pulse}">
+                    <c:Card.Actions>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Monitor.Window}" VerticalAlignment="Center" Margin="0,0,10,0" Style="{StaticResource T.Caption}" />
+                            <Slider Width="160" Minimum="1" Maximum="30" Value="{Binding Live.HistorySeconds}" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:T Monitor.Window}" />
+                            <TextBlock Text="{Binding Live.HistorySeconds, StringFormat={}{0:0} s}" Width="40" Margin="10,0,0,0"
+                                       VerticalAlignment="Center" Style="{StaticResource T.Caption}" />
+                        </StackPanel>
+                    </c:Card.Actions>
+                    <StackPanel>
+                        <c:TimeSeriesPlot Height="230" Data="{Binding Live.StickHistory}" Revision="{Binding Live.Revision}" />
+                        <c:TimeSeriesPlot Height="130" Margin="0,10,0,0" Data="{Binding Live.TriggerHistory}" Revision="{Binding Live.Revision}" />
+                    </StackPanel>
+                </c:Card>
+
+                <!-- Raw DirectInput -->
+                <c:Card c:AdaptivePanel.ColumnSpan="3" Header="{l:T Monitor.DirectInputRaw}" Icon="{StaticResource Icon.Info}"
+                        Subtitle="{l:T Monitor.DirectInputNote}" Visibility="{Binding Live.DirectInputRaw, Converter={StaticResource NullToVis}}">
+                    <TextBlock Style="{StaticResource T.Mono}" Text="{Binding Live.DirectInputRaw}" />
+                </c:Card>
+            </c:AdaptivePanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
