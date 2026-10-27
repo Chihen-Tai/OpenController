@@ -23,13 +23,13 @@ jobs:
       # Restore with the Release configuration: the app is self-contained only in Release,
       # so a default (Debug) restore would not download the Windows desktop runtime pack.
       - name: Restore
-        run: dotnet restore XboxControllerCenter.slnx -p:Configuration=Release
+        run: dotnet restore OpenController.slnx -p:Configuration=Release
 
       - name: Build (Release)
-        run: dotnet build XboxControllerCenter.slnx -c Release --no-restore -warnaserror
+        run: dotnet build OpenController.slnx -c Release --no-restore -warnaserror
 
       - name: Unit tests
-        run: dotnet test tests/XboxControllerCenter.Core.Tests -c Release --no-build --logger "trx;LogFileName=results.trx"
+        run: dotnet test tests/OpenController.Core.Tests -c Release --no-build --logger "trx;LogFileName=results.trx"
 
       - name: Package portable ZIP
         shell: pwsh
@@ -37,7 +37,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: XboxControllerCenter-win-x64
+          name: OpenController-win-x64
           path: |
             dist/*.zip
             dist/SHA256SUMS.txt

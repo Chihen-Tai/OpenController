@@ -1,6 +1,6 @@
 # Input processing pipeline
 
-Implemented in `src/XboxControllerCenter.Core/Processing` and covered by `tests/…/StickProcessorTests.cs`
+Implemented in `src/OpenController.Core/Processing` and covered by `tests/…/StickProcessorTests.cs`
 and `CurveAndTriggerTests.cs`. Processing runs on the sampling thread for every sample.
 
 ## 1. Normalization

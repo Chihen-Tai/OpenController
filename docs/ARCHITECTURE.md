@@ -2,7 +2,7 @@
 
 ```
 src/
-├── XboxControllerCenter.Core        net10.0 — no Windows dependencies, fully unit-tested
+├── OpenController.Core        net10.0 — no Windows dependencies, fully unit-tested
 │   ├── Models/          GamepadState, GamepadButtons, GamepadControl, ControllerInfo
 │   ├── Processing/      AxisMath, StickSettings/StickProcessor, TriggerSettings/TriggerProcessor, ResponseCurve
 │   ├── Diagnostics/     DriftAnalyzer, CircularityAnalyzer, SampleRing (history), RateMeter
@@ -10,7 +10,7 @@ src/
 │   ├── Profiles/        Profile, ProfilePresets, ProfileSerializer (versioned JSON + migrations), ProfileStore, AppSettings
 │   ├── Battery/         BatteryReading, BatterySelector (priority + freshness), BatteryAssociator
 │   └── Devices/         ControllerRegistry (connect/disconnect events), DevicePathParser, DeviceDeduplicator, ControllerCatalog
-├── XboxControllerCenter.Platform    net10.0-windows — device I/O only
+├── OpenController.Platform    net10.0-windows — device I/O only
 │   ├── Native/          XInput (runtime-resolved), Raw Input list, high-resolution timer, SendInput
 │   ├── Input/           InputService (sampling thread), BatteryService, InputSnapshot
 │   │   ├── XInput/      XInputReader
@@ -20,13 +20,13 @@ src/
 │   ├── VirtualController/ VirtualControllerService (ViGEm)
 │   ├── Output/          KeyboardOutput, IVirtualGamepadSink
 │   └── Apps/            ForegroundAppWatcher (per-game profiles)
-└── XboxControllerCenter.App         WPF GUI (assembly XboxControllerCenter.exe)
+└── OpenController.App         WPF GUI (assembly OpenController.exe)
     ├── Services/        AppServices (composition root), ProfileManager, AppPaths, FileLog, TrayIcon
     ├── ViewModels/      one per tab + MainViewModel (frame loop)
-    ├── Views/           Dashboard, Monitor, Diagnostics, Tuning, Mapping, Profiles, Settings
+    ├── Views/           Simple (simple mode), Dashboard, Monitor, Diagnostics, Tuning, Mapping, Profiles, Settings
     ├── Controls/        custom-drawn ControllerVisual, StickPlot, TimeSeriesPlot, CurvePlot, SliderRow
     └── Localization/    English + Traditional Chinese, switchable at runtime
-tests/XboxControllerCenter.Core.Tests  xUnit
+tests/OpenController.Core.Tests  xUnit
 ```
 
 ## Threads
@@ -53,7 +53,7 @@ XInputGetStateEx / DirectInput Poll ─► GamepadState (raw)
 
 ## Profiles and settings storage
 
-- Default: `%LOCALAPPDATA%\XboxControllerCenter\` (`settings.json`, `profiles\{id}.json`, `logs\app.log`).
+- Default: `%LOCALAPPDATA%\OpenController\` (`settings.json`, `profiles\{id}.json`, `logs\app.log`).
 - Portable: if `portable.txt` exists next to the executable and the folder is writable, `.\data\` is used.
 - Writes are atomic (temp file + replace). Unreadable files are reported and left untouched; recovery
   (renaming to `*.corrupt-<time>`) is an explicit user action. Migrated files keep a `.bak` copy.

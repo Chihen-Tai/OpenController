@@ -1,4 +1,4 @@
-# Xbox Controller Center
+# OpenController
 
 A free, open-source (GPL-3.0-or-later) Windows app for testing, monitoring, calibrating and remapping
 game controllers: Xbox Series X|S / Xbox One / Xbox 360, other XInput controllers, PlayStation DualShock 4 /
@@ -10,7 +10,15 @@ No account, no cloud, no telemetry, no installer, no admin rights for normal use
 > PS4 DualShock 4、PS5 DualSense／DualSense Edge、Switch Pro 手把與一般 DirectInput 手把（按鍵依手把顯示 ✕○□△ 或 B/A/Y/X）。
 > 介面可即時切換英文／繁體中文；第一次啟動時依 Windows 語言或地區格式自動選擇。
 
+> Formerly **Xbox Controller Center**. Settings in `%LOCALAPPDATA%\XboxControllerCenter` move to
+> `%LOCALAPPDATA%\OpenController` automatically on the first start. 舊名 Xbox Controller Center，設定會自動搬到新資料夾。
+
 ## Screenshots
+
+**Simple mode / 簡單模式** — one page with the live controller, battery, a one-button drift check and fix, and the
+profile picker. Switch with the button at the bottom of the sidebar.
+
+![Simple mode](docs/screenshots/simple-mode.png)
 
 | Dashboard (dark) | Dashboard (light) |
 |---|---|
@@ -38,16 +46,17 @@ and the [design system](docs/UI_DESIGN.md). All screenshots show live data from 
 | **Virtual controller** | Optional Xbox 360 output via the user-installed ViGEmBus driver: processed input, rumble forwarding, feedback-loop protection, neutral on disconnect/stop/exit, clear "what games receive" explanation. |
 | **In-game overlay** | Hold both sticks in (L3 + R3) for 0.5 s, or press a global keyboard shortcut (default Ctrl + Alt + O, changeable), to show or hide a click-through status panel over the game: battery and estimated runtime per controller, connection quality, active profile, virtual/keyboard output state and the time. Never takes focus; optional auto-hide. Needs borderless/windowed games. |
 | **Profiles** | Default/Racing/FPS/Emulator presets, create/duplicate/rename/delete (confirmed)/import/export, reset, per-game and per-controller association with optional auto-switching, versioned JSON with migration, corrupted files reported and never overwritten. |
+| **Simple mode** | One page for everyday use: live controller drawing, battery and connection, "Start check" → "Fix automatically" for stick drift (applies the recommended deadzone to both sticks), game-type profile picker, how to open the in-game overlay. Advanced mode shows every tab; the choice is remembered. |
 | **UI** | Fluent-style WPF UI with dark (default) and light themes, Xbox-green accent, Fluent UI System Icons, responsive card layout, English and Traditional Chinese switchable at runtime (first start follows the Windows display language or regional format), keyboard navigation, per-monitor DPI, tray icon. Rendering (15–60 FPS) is decoupled from 60–1000 Hz input sampling and only redraws what changed. |
 
 ## Download / run
 
-1. Get `XboxControllerCenter-<version>-win-x64.zip` (from GitHub Actions artifacts or `build/publish.ps1`).
+1. Get `OpenController-<version>-win-x64.zip` (from GitHub Actions artifacts or `build/publish.ps1`).
 2. Verify it against `SHA256SUMS.txt`.
-3. Extract anywhere and run `XboxControllerCenter.exe`. Windows 10 1809+ / Windows 11, x64. No .NET installation needed.
+3. Extract anywhere and run `OpenController.exe`. Windows 10 1809+ / Windows 11, x64. No .NET installation needed.
 
 Settings are stored in `.\data` next to the exe (portable mode, enabled by the shipped `portable.txt`), or in
-`%LOCALAPPDATA%\XboxControllerCenter` if that folder is not writable or `portable.txt` is deleted.
+`%LOCALAPPDATA%\OpenController` if that folder is not writable or `portable.txt` is deleted.
 Settings belong to that folder: a copy extracted somewhere else starts with its own settings. Running the exe
 straight from inside the zip (Explorer extracts it to a new temp folder each time) uses `%LOCALAPPDATA%` instead, so
 settings such as the language are kept.
@@ -71,10 +80,10 @@ Virtual Xbox 360 controller*. Read [docs/VIRTUAL_CONTROLLER.md](docs/VIRTUAL_CON
 Requirements: Windows, [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```powershell
-dotnet build XboxControllerCenter.slnx -c Release
-dotnet test tests/XboxControllerCenter.Core.Tests -c Release
-dotnet run --project src/XboxControllerCenter.App          # debug run
-./build/publish.ps1                                         # dist/XboxControllerCenter-<ver>-win-x64.zip + SHA256SUMS.txt
+dotnet build OpenController.slnx -c Release
+dotnet test tests/OpenController.Core.Tests -c Release
+dotnet run --project src/OpenController.App          # debug run
+./build/publish.ps1                                         # dist/OpenController-<ver>-win-x64.zip + SHA256SUMS.txt
 ```
 
 `build/make-icon.ps1` regenerates the (original) application icon; `build/gen-icons.sh` regenerates the UI icon

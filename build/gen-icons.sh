@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Regenerates src/XboxControllerCenter.App/Themes/Icons.xaml from Fluent UI System Icons (MIT, Microsoft).
+# Regenerates src/OpenController.App/Themes/Icons.xaml from Fluent UI System Icons (MIT, Microsoft).
 # Path data is copied unchanged from the 20px "regular" SVGs; the license text is in THIRD_PARTY_NOTICES.md.
 # Usage: bash build/gen-icons.sh   (needs curl)
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
-out="$root/src/XboxControllerCenter.App/Themes/Icons.xaml"
+out="$root/src/OpenController.App/Themes/Icons.xaml"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 base=https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets
