@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace XboxControllerCenter.Profiles;
@@ -35,6 +36,16 @@ public sealed record AppSettings
     /// <summary>Win32 hotkey modifiers: 1 Alt, 2 Ctrl, 4 Shift, 8 Win. Default: Ctrl + Alt (Ctrl + Shift + O is often taken).</summary>
     public int OverlayHotkeyModifiers { get; init; } = 2 | 1;
 
+    /// <summary>
+    /// UI language for a first start (no settings file yet): Traditional Chinese when either the Windows display
+    /// language or the regional format is Chinese, otherwise English.
+    /// </summary>
+    public static string DefaultLanguage(CultureInfo uiCulture, CultureInfo formatCulture) =>
+        IsChinese(uiCulture) || IsChinese(formatCulture) ? "zh-TW" : "en";
+
+    private static bool IsChinese(CultureInfo c) =>
+        string.Equals(c.TwoLetterISOLanguageName, "zh", StringComparison.OrdinalIgnoreCase);
+
     public AppSettings Sanitized() => this with
     {
         OverlayAutoHideSeconds = Math.Clamp(OverlayAutoHideSeconds, 0, 60),
@@ -64,10 +75,11 @@ public sealed class AppSettingsStore
     /// <summary>True after a load failure; saving is blocked until <see cref="ResetCorrupt"/> is called.</summary>
     public bool IsCorrupt { get; private set; }
 
-    public AppSettingsLoadResult Load()
+    /// <param name="defaults">Settings used when no settings file exists yet (first start).</param>
+    public AppSettingsLoadResult Load(AppSettings? defaults = null)
     {
         if (!File.Exists(FilePath))
-            return new AppSettingsLoadResult(new AppSettings(), null);
+            return new AppSettingsLoadResult((defaults ?? new AppSettings()).Sanitized(), null);
         try
         {
             AppSettings? s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), ProfileSerializer.Options);

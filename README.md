@@ -1,11 +1,14 @@
 # Xbox Controller Center
 
 A free, open-source (GPL-3.0-or-later) Windows app for testing, monitoring, calibrating and remapping
-game controllers: Xbox Series X|S / Xbox One / Xbox 360, other XInput controllers and generic DirectInput gamepads.
+game controllers: Xbox Series X|S / Xbox One / Xbox 360, other XInput controllers, PlayStation DualShock 4 /
+DualSense / DualSense Edge, the Nintendo Switch Pro Controller and generic DirectInput gamepads.
 No account, no cloud, no telemetry, no installer, no admin rights for normal use.
 
 > 繁體中文：這是一套免費、開源（GPL-3.0-or-later）的 Windows 控制器工具，提供即時輸入監看、搖桿飄移與死區診斷、
-> 誠實的藍牙電量顯示、搖桿／扳機調校、按鍵對應、設定檔，以及選用的虛擬 Xbox 360 控制器輸出。介面可即時切換英文／繁體中文。
+> 誠實的藍牙電量顯示、搖桿／扳機調校、按鍵對應、設定檔，以及選用的虛擬 Xbox 360 控制器輸出。支援 Xbox、XInput 相容手把、
+> PS4 DualShock 4、PS5 DualSense／DualSense Edge、Switch Pro 手把與一般 DirectInput 手把（按鍵依手把顯示 ✕○□△ 或 B/A/Y/X）。
+> 介面可即時切換英文／繁體中文；第一次啟動時依 Windows 語言或地區格式自動選擇。
 
 ## Screenshots
 
@@ -25,7 +28,7 @@ and the [design system](docs/UI_DESIGN.md). All screenshots show live data from 
 
 | Area | What it does |
 |---|---|
-| **Detection** | XInput and DirectInput controllers, hot-plug without restart, XInput devices de-duplicated from DirectInput (Microsoft "IG_" rule), player slot, VID/PID, capabilities, transport when Windows exposes it. |
+| **Detection** | XInput and DirectInput controllers, hot-plug without restart. DualShock 4, DualSense, DualSense Edge and Switch Pro are recognized by VID/PID: correct button order, model name, and their own button names (✕ ○ □ △, L1/R1, L2/R2, Create/Options · B/A/Y/X, ZL/ZR, −/+) on the drawing, tables and Mapping tab. XInput devices are de-duplicated from DirectInput (Microsoft "IG_" rule), player slot, VID/PID, capabilities, transport when Windows exposes it. |
 | **Battery** | Priority: Bluetooth LE GATT Battery Service (0x180F/0x2A19) → Windows Bluetooth battery property (only while connected) → Windows.Gaming.Input report → XInput coarse level. Shows source, update age, stale state, charging state when reported, low-battery warning + tray notification, and an **estimated runtime measured from the controller's own GATT readings** (shown only after a real drop has been observed; no source reports runtime directly). XInput Low/Medium/Full is **never** turned into a percentage. |
 | **Live monitor** | Controller drawing with pressed buttons, raw + normalized stick values, trigger raw/percent, raw vs processed overlay, 1–30 s history graphs, measured sampling rate and state-change rate, raw DirectInput data. |
 | **Connection quality** | Measured from the input itself (Windows exposes no signal strength for a connected Bluetooth controller): update spacing while moving (median / 95 % / longest), suspected stalls during continuous movement, and a persistent local log of connections, disconnections (flagged when the controller came back within 2 min) and stalls, to compare before/after changing antenna, Wi-Fi band or distance. |
@@ -35,7 +38,7 @@ and the [design system](docs/UI_DESIGN.md). All screenshots show live data from 
 | **Virtual controller** | Optional Xbox 360 output via the user-installed ViGEmBus driver: processed input, rumble forwarding, feedback-loop protection, neutral on disconnect/stop/exit, clear "what games receive" explanation. |
 | **In-game overlay** | Hold both sticks in (L3 + R3) for 0.5 s, or press a global keyboard shortcut (default Ctrl + Alt + O, changeable), to show or hide a click-through status panel over the game: battery and estimated runtime per controller, connection quality, active profile, virtual/keyboard output state and the time. Never takes focus; optional auto-hide. Needs borderless/windowed games. |
 | **Profiles** | Default/Racing/FPS/Emulator presets, create/duplicate/rename/delete (confirmed)/import/export, reset, per-game and per-controller association with optional auto-switching, versioned JSON with migration, corrupted files reported and never overwritten. |
-| **UI** | Fluent-style WPF UI with dark (default) and light themes, Xbox-green accent, Fluent UI System Icons, responsive card layout, English and Traditional Chinese switchable at runtime, keyboard navigation, per-monitor DPI, tray icon. Rendering (15–60 FPS) is decoupled from 60–1000 Hz input sampling and only redraws what changed. |
+| **UI** | Fluent-style WPF UI with dark (default) and light themes, Xbox-green accent, Fluent UI System Icons, responsive card layout, English and Traditional Chinese switchable at runtime (first start follows the Windows display language or regional format), keyboard navigation, per-monitor DPI, tray icon. Rendering (15–60 FPS) is decoupled from 60–1000 Hz input sampling and only redraws what changed. |
 
 ## Download / run
 
@@ -45,6 +48,9 @@ and the [design system](docs/UI_DESIGN.md). All screenshots show live data from 
 
 Settings are stored in `.\data` next to the exe (portable mode, enabled by the shipped `portable.txt`), or in
 `%LOCALAPPDATA%\XboxControllerCenter` if that folder is not writable or `portable.txt` is deleted.
+Settings belong to that folder: a copy extracted somewhere else starts with its own settings. Running the exe
+straight from inside the zip (Explorer extracts it to a new temp folder each time) uses `%LOCALAPPDATA%` instead, so
+settings such as the language are kept.
 Windows SmartScreen may warn because the executable is not code-signed.
 
 ### Optional: virtual Xbox controller
@@ -85,6 +91,28 @@ and packages on `windows-latest`.
 - [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)
 - [DEPENDENCIES.md](DEPENDENCIES.md) — reference projects, licenses, decisions
 - [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+
+## Acknowledgements / 感謝
+
+This project did not copy code from the projects below, but it would not look the way it does without them —
+their ideas, documentation and public data shaped many features. Thank you!
+本專案沒有直接複製以下專案的程式碼，但許多功能的想法、做法與公開資料都受益於它們，特此感謝。
+
+| Project | What we learned from it |
+|---|---|
+| [rhunecke/HIDTester](https://github.com/rhunecke/HIDTester) | Stick drift / deadzone tests and live graphs |
+| [tommaier123/XBatteryStatus](https://github.com/tommaier123/XBatteryStatus) | Reading the Xbox controller battery over the Bluetooth LE Battery Service |
+| [x360ce/x360ce](https://github.com/x360ce/x360ce) | Deadzone, anti-deadzone and mapping concepts |
+| [AntiMicroX/antimicrox](https://github.com/AntiMicroX/antimicrox) | Profiles and keyboard output |
+| [nefarius/ViGEmBus](https://github.com/nefarius/ViGEmBus), [ViGEm.NET](https://github.com/nefarius/ViGEm.NET) | Virtual Xbox 360 controller (the client library is used, see notices) |
+| [nefarius/HidHide](https://github.com/nefarius/HidHide) | Avoiding double input with a virtual controller |
+| [HeyOkay/HaloBattery](https://github.com/HeyOkay/HaloBattery) | Battery display ideas |
+| [UniPad-app/UniPad](https://github.com/UniPad-app/UniPad) | Controller UI ideas |
+| [libsdl-org/SDL](https://github.com/libsdl-org/SDL), [mdqinc/SDL_GameControllerDB](https://github.com/mdqinc/SDL_GameControllerDB) | Controller IDs and DirectInput button orders for PlayStation and Switch controllers |
+| [amerkoleci/Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows) | DirectInput bindings (used) |
+| [microsoft/fluentui-system-icons](https://github.com/microsoft/fluentui-system-icons) | UI icons (used) |
+
+Details on licenses and what was (not) reused: [DEPENDENCIES.md](DEPENDENCIES.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License
 

@@ -5,6 +5,8 @@ namespace XboxControllerCenter.App.Services;
 /// <summary>
 /// Where settings live. Portable mode: if a file named <c>portable.txt</c> sits next to the executable and that
 /// folder is writable, data is stored in <c>.\data</c>. Otherwise <c>%LOCALAPPDATA%\XboxControllerCenter</c>.
+/// Portable mode is skipped when the executable runs from the temp folder: opening the exe straight from the zip
+/// in Explorer extracts it to a new temp folder every time, which would start with fresh settings on every launch.
 /// Nothing is written to the registry.
 /// </summary>
 public sealed class AppPaths
@@ -26,7 +28,7 @@ public sealed class AppPaths
     public static AppPaths Resolve()
     {
         string exeDir = AppContext.BaseDirectory;
-        if (File.Exists(Path.Combine(exeDir, "portable.txt")))
+        if (File.Exists(Path.Combine(exeDir, "portable.txt")) && !IsUnderTempFolder(exeDir))
         {
             string portableRoot = Path.Combine(exeDir, "data");
             if (IsWritable(portableRoot))
@@ -36,6 +38,19 @@ public sealed class AppPaths
         string local = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "XboxControllerCenter");
         Directory.CreateDirectory(local);
         return new AppPaths(local, portable: false);
+    }
+
+    private static bool IsUnderTempFolder(string dir)
+    {
+        try
+        {
+            string temp = Path.GetFullPath(Path.GetTempPath());
+            return Path.GetFullPath(dir).StartsWith(temp, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException or System.Security.SecurityException)
+        {
+            return false;
+        }
     }
 
     private static bool IsWritable(string dir)

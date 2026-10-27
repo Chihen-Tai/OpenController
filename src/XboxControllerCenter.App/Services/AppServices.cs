@@ -17,7 +17,10 @@ public sealed class AppServices : IDisposable
         FileLog.Initialize(Paths.LogFile);
 
         SettingsStore = new AppSettingsStore(Paths.SettingsFile);
-        AppSettingsLoadResult settings = SettingsStore.Load();
+        AppSettingsLoadResult settings = SettingsStore.Load(new AppSettings
+        {
+            Language = AppSettings.DefaultLanguage(System.Globalization.CultureInfo.CurrentUICulture, System.Globalization.CultureInfo.CurrentCulture),
+        });
         Settings = settings.Settings;
         SettingsError = settings.Error;
         if (settings.Error is not null)

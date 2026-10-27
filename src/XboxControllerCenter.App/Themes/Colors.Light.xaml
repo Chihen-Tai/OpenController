@@ -105,4 +105,6 @@
     <SolidColorBrush x:Key="Pad.FaceB" Color="#D9363E" />
     <SolidColorBrush x:Key="Pad.FaceX" Color="#2F6FE0" />
     <SolidColorBrush x:Key="Pad.FaceY" Color="#E0A800" />
+    <SolidColorBrush x:Key="Pad.FaceSquare" Color="#C9478F" />
+    <SolidColorBrush x:Key="Pad.FacePlain" Color="#5F6873" />
 </ResourceDictionary>

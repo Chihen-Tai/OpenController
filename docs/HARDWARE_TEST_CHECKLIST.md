@@ -27,6 +27,7 @@ No generic DirectInput gamepad. Items not listed as ✅ below were **not hardwar
 | Bluetooth GATT battery percentage | ✅ (2026-10-24) | Re-tested over Bluetooth (PID 0B13): GATT 100 %, later 95 % and 17 %, matching Windows' own Bluetooth battery value (16 %). |
 | Virtual Xbox 360 output, rumble forwarding | ☐ | ViGEmBus not installed. **Not hardware-tested.** |
 | DirectInput generic gamepad | ☐ | No device available. **Not hardware-tested.** |
+| DualShock 4 / DualSense / DualSense Edge / Switch Pro layouts | ☐ | No device available. Layouts are unit-tested against the documented HID button order only. **Not hardware-tested.** |
 | Keyboard output | ☐ | **Not hardware-tested.** |
 
 ## Bluetooth / connection quality (2026-10-25)
@@ -72,6 +73,14 @@ No generic DirectInput gamepad. Items not listed as ✅ below were **not hardwar
 1. ☐ Appears with API "DirectInput"; raw axes/buttons/POV listed on Input Monitor.
 2. ☐ Default layout (X/Y, Z/Rz or Rx/Ry, buttons 0–9) is plausible; remap where not.
 3. ☐ An Xbox controller is **not** listed twice (XInput + DirectInput).
+
+### C2. PlayStation / Nintendo controllers (DirectInput)
+1. ☐ DualShock 4 / DualSense (USB and Bluetooth): shown by model name; drawing and tables show ✕ ○ □ △, L1/R1/L2/R2.
+2. ☐ Cross lights the bottom face button, Circle the right one; L2/R2 are analog; Create/Share, Options, PS, touchpad click,
+   L3/R3 and the D-pad light the right parts.
+3. ☐ Switch Pro over Bluetooth: B bottom, A right, Y left, X top; ZL/ZR digital; −/+/Home/Capture; right stick moves
+   the right stick (Z/Rz vs. Rx/Ry is auto-detected).
+4. ☐ With Steam or DS4Windows running, note whether the controller is shown twice (physical + their virtual Xbox pad).
 
 ### D. Inputs
 1. ☐ Press every button individually → correct highlight on the controller drawing and button table.

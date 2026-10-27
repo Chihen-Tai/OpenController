@@ -3,7 +3,8 @@ using XboxControllerCenter.Models;
 namespace XboxControllerCenter.Devices;
 
 /// <summary>
-/// Known Microsoft controller product IDs. The transport hint comes from the fact that
+/// Known controller product IDs (Microsoft, plus the Sony and Nintendo controllers that Windows exposes through
+/// DirectInput). The transport hint comes from the fact that
 /// Microsoft uses distinct product IDs for the USB and Bluetooth personalities of the same
 /// controller. IDs are public USB/Bluetooth identifiers (also listed in projects such as SDL).
 /// Unknown IDs yield <see cref="ControllerFamily.Unknown"/> / <see cref="ConnectionType.Unknown"/>.
@@ -11,6 +12,8 @@ namespace XboxControllerCenter.Devices;
 public static class ControllerCatalog
 {
     public const ushort MicrosoftVendorId = 0x045E;
+    public const ushort SonyVendorId = 0x054C;
+    public const ushort NintendoVendorId = 0x057E;
 
     /// <summary>
     /// Generic product ID that XInput (XInputGetCapabilitiesEx) and the XInput HID interface report for
@@ -44,12 +47,29 @@ public static class ControllerCatalog
         [0x02A1] = (ControllerFamily.Xbox360, ConnectionType.Unknown, "Xbox 360 Compatible Controller"),
     };
 
+    // Sony and Nintendo use the same product ID over USB and Bluetooth; the transport comes from the HID path.
+    private static readonly Dictionary<(ushort Vid, ushort Pid), (ControllerFamily Family, string Name)> s_other = new()
+    {
+        [(SonyVendorId, 0x05C4)] = (ControllerFamily.DualShock4, "DualShock 4 Controller"),
+        [(SonyVendorId, 0x09CC)] = (ControllerFamily.DualShock4, "DualShock 4 Controller"),
+        [(SonyVendorId, 0x0BA0)] = (ControllerFamily.DualShock4, "DualShock 4 (USB Wireless Adaptor)"),
+        [(SonyVendorId, 0x0CE6)] = (ControllerFamily.DualSense, "DualSense Wireless Controller"),
+        [(SonyVendorId, 0x0DF2)] = (ControllerFamily.DualSenseEdge, "DualSense Edge Wireless Controller"),
+        [(NintendoVendorId, 0x2009)] = (ControllerFamily.SwitchPro, "Nintendo Switch Pro Controller"),
+    };
+
     public static bool TryLookup(ushort vendorId, ushort productId,
         out ControllerFamily family, out ConnectionType transport, out string name)
     {
         if (vendorId == MicrosoftVendorId && s_microsoft.TryGetValue(productId, out var e))
         {
             (family, transport, name) = e;
+            return true;
+        }
+        if (s_other.TryGetValue((vendorId, productId), out var o))
+        {
+            (family, name) = o;
+            transport = ConnectionType.Unknown;
             return true;
         }
 

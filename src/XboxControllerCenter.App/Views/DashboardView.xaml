@@ -37,7 +37,7 @@
                         <Grid>
                             <c:ControllerVisual Height="430" State="{Binding Live.Raw}" OutputState="{Binding Live.Output}"
                                                 ShowOutput="{Binding Live.ShowOutput}" IsConnected="{Binding Live.IsLive}"
-                                                ShowGuide="{Binding Live.GuideSupported}" />
+                                                ShowGuide="{Binding Live.GuideSupported}" Family="{Binding Live.Family}" />
                             <Border HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource Bg.CardRaised}"
                                     BorderBrush="{DynamicResource Border.Strong}" BorderThickness="1" CornerRadius="8" Padding="16,10"
                                     Visibility="{Binding Live.IsLive, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">

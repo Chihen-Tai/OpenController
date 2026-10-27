@@ -16,9 +16,21 @@ public sealed class ButtonRowViewModel(GamepadControl control) : ObservableObjec
 {
     private bool _pressed;
     private bool _outputPressed;
+    private ControllerFamily _family;
 
     public GamepadControl Control { get; } = control;
-    public string Name => Control.ShortLabel();
+    /// <summary>Name printed on the selected controller (e.g. "✕" on a DualSense for the A position).</summary>
+    public string Name => Control.ShortLabel(_family);
+
+    public ControllerFamily Family
+    {
+        set
+        {
+            if (Set(ref _family, value))
+                OnPropertyChanged(nameof(Name));
+        }
+    }
+
     public bool Pressed { get => _pressed; set => Set(ref _pressed, value); }
     /// <summary>Whether the same control is active in the remapped output.</summary>
     public bool OutputPressed { get => _outputPressed; set => Set(ref _outputPressed, value); }
@@ -53,6 +65,7 @@ public sealed class LiveViewModel : ObservableObject
     private bool _connected;
     private bool _isLive;
     private bool _guideSupported;
+    private ControllerFamily _family;
     private bool _showOutput = true;
     private long _revision;
     private string _changeRate = "—";
@@ -84,6 +97,19 @@ public sealed class LiveViewModel : ObservableObject
     /// <summary>Connected and receiving fresh snapshots from the sampler.</summary>
     public bool IsLive { get => _isLive; set => Set(ref _isLive, value); }
     public bool GuideSupported { get => _guideSupported; private set => Set(ref _guideSupported, value); }
+
+    /// <summary>Family of the selected controller; decides which button names are shown.</summary>
+    public ControllerFamily Family
+    {
+        get => _family;
+        private set
+        {
+            if (!Set(ref _family, value))
+                return;
+            foreach (ButtonRowViewModel b in Buttons)
+                b.Family = value;
+        }
+    }
 
     /// <summary>Show processed stick positions on the controller drawing.</summary>
     public bool ShowOutput { get => _showOutput; set => Set(ref _showOutput, value); }
@@ -167,6 +193,7 @@ public sealed class LiveViewModel : ObservableObject
     {
         IsConnected = true;
         GuideSupported = c.Info.Capabilities.HasGuideButton;
+        Family = c.Info.Family;
         Raw = c.Raw;
         Output = c.Output.Gamepad;
 

@@ -71,4 +71,45 @@ public static class GamepadControls
         GamepadControl.DPadRight => "D-pad →",
         _ => control.ToString(),
     };
+
+    /// <summary>
+    /// Label printed on a controller of the given family for the button that sits where the Xbox control sits
+    /// (positional: Xbox A = PlayStation Cross = Nintendo B).
+    /// </summary>
+    public static string ShortLabel(this GamepadControl control, ControllerFamily family) => family.LabelStyle() switch
+    {
+        ButtonLabelStyle.PlayStation => control switch
+        {
+            GamepadControl.A => "✕",
+            GamepadControl.B => "○",
+            GamepadControl.X => "□",
+            GamepadControl.Y => "△",
+            GamepadControl.LeftShoulder => "L1",
+            GamepadControl.RightShoulder => "R1",
+            GamepadControl.LeftTrigger => "L2",
+            GamepadControl.RightTrigger => "R2",
+            GamepadControl.View => family == ControllerFamily.DualShock4 ? "Share" : "Create",
+            GamepadControl.Menu => "Options",
+            GamepadControl.Guide => "PS",
+            GamepadControl.Share => "Touchpad",
+            _ => control.ShortLabel(),
+        },
+        ButtonLabelStyle.Nintendo => control switch
+        {
+            GamepadControl.A => "B",
+            GamepadControl.B => "A",
+            GamepadControl.X => "Y",
+            GamepadControl.Y => "X",
+            GamepadControl.LeftShoulder => "L",
+            GamepadControl.RightShoulder => "R",
+            GamepadControl.LeftTrigger => "ZL",
+            GamepadControl.RightTrigger => "ZR",
+            GamepadControl.View => "−",
+            GamepadControl.Menu => "+",
+            GamepadControl.Guide => "Home",
+            GamepadControl.Share => "Capture",
+            _ => control.ShortLabel(),
+        },
+        _ => control.ShortLabel(),
+    };
 }

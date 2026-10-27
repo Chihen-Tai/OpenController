@@ -17,6 +17,8 @@ not assumed.
 | HeyOkay/HaloBattery | MIT | active | Concepts only. |
 | UniPad-app/UniPad | MIT | active | Concepts only. |
 | hifihedgehog/PadForge | CC BY-NC-SA 4.0 | active | **Not used.** Non-commercial license is not open source and is incompatible with GPL. |
+| libsdl-org/SDL | zlib | active | Reference only: public USB/Bluetooth vendor/product IDs and the DirectInput button order of DualShock 4, DualSense and Switch Pro controllers (`ControllerCatalog`, `DirectInputLayout`). No code reused. |
+| mdqinc/SDL_GameControllerDB | zlib | active | Cross-check for the same DirectInput button orders. No mapping strings copied. |
 
 Because no third-party source code was incorporated, the project could have used any license.
 **GPL-3.0-or-later** was chosen so that code from the GPL-3.0 reference projects can be adopted later

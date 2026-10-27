@@ -34,7 +34,13 @@ public sealed class MappingRowViewModel : ObservableObject
     }
 
     public GamepadControl Source { get; }
-    public string SourceLabel => Source.ShortLabel();
+
+    /// <summary>Name on the selected controller; non-Xbox controllers also show the Xbox position it maps from, e.g. "✕ (A)".</summary>
+    public string SourceLabel => _owner.Family.LabelStyle() == ButtonLabelStyle.Xbox
+        ? Source.ShortLabel()
+        : $"{Source.ShortLabel(_owner.Family)} ({Source.ShortLabel()})";
+
+    internal void RefreshSourceLabel() => OnPropertyChanged(nameof(SourceLabel));
     public IReadOnlyList<MappingOption> Options => _owner.Options;
 
     public MappingOption Selected
@@ -125,6 +131,7 @@ public sealed class MappingViewModel : ObservableObject
     private string? _error;
     private string _keysDown = "";
     private string _comparison = "";
+    private ControllerFamily _family;
 
     public MappingViewModel(AppServices services, VirtualControllerViewModel virtualController)
     {
@@ -138,6 +145,10 @@ public sealed class MappingViewModel : ObservableObject
     }
 
     public VirtualControllerViewModel Virtual { get; }
+
+    /// <summary>Family of the selected controller (source button names). Targets keep Xbox names: the output is an Xbox controller.</summary>
+    public ControllerFamily Family => _family;
+
     public IReadOnlyList<MappingOption> Options { get; private set; }
     public ObservableCollection<MappingRowViewModel> Rows { get; }
     public ICommand ResetCommand { get; }
@@ -215,6 +226,13 @@ public sealed class MappingViewModel : ObservableObject
             return;
         }
 
+        if (c.Info.Family != _family)
+        {
+            _family = c.Info.Family;
+            foreach (MappingRowViewModel row in Rows)
+                row.RefreshSourceLabel();
+        }
+
         foreach (MappingRowViewModel row in Rows)
             row.SourcePressed = ButtonRemapper.IsPressed(row.Source, c.Processed);
         OnPropertyChanged(nameof(MappedSummary));
@@ -226,7 +244,7 @@ public sealed class MappingViewModel : ObservableObject
             .Select(ctl => ctl.ShortLabel()));
         string inButtons = string.Join(" ", GamepadControls.All
             .Where(ctl => ButtonRemapper.IsPressed(ctl, c.Processed))
-            .Select(ctl => ctl.ShortLabel()));
+            .Select(ctl => ctl.ShortLabel(_family)));
         string outKeys = c.Output.Keys.IsEmpty ? "—" : string.Join(", ", c.Output.Keys.Keys.Select(k => KeyCaptureBox.KeyName(k)));
         Comparison = Loc.T("Mapping.Comparison",
             inButtons.Length == 0 ? "—" : inButtons,

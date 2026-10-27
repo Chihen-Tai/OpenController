@@ -26,6 +26,21 @@ public enum ControllerFamily
     Xbox360,
     GenericXInput,
     GenericDirectInput,
+    DualShock4,
+    DualSense,
+    DualSenseEdge,
+    SwitchPro,
+}
+
+/// <summary>Which names the physical controller prints on its buttons.</summary>
+public enum ButtonLabelStyle
+{
+    /// <summary>A/B/X/Y, LB/RB, LT/RT, View/Menu.</summary>
+    Xbox,
+    /// <summary>Cross/Circle/Square/Triangle, L1/R1, L2/R2, Share or Create/Options.</summary>
+    PlayStation,
+    /// <summary>B/A/Y/X (positions swapped against Xbox), L/R, ZL/ZR, −/+.</summary>
+    Nintendo,
 }
 
 /// <summary>Capabilities that the input API actually reported (not guessed).</summary>
@@ -65,4 +80,16 @@ public sealed record ControllerInfo
 
     public bool IsXboxFamily => Family is ControllerFamily.XboxSeries or ControllerFamily.XboxElite2
         or ControllerFamily.XboxOne or ControllerFamily.Xbox360;
+
+    public ButtonLabelStyle LabelStyle => Family.LabelStyle();
+}
+
+public static class ControllerFamilies
+{
+    public static ButtonLabelStyle LabelStyle(this ControllerFamily family) => family switch
+    {
+        ControllerFamily.DualShock4 or ControllerFamily.DualSense or ControllerFamily.DualSenseEdge => ButtonLabelStyle.PlayStation,
+        ControllerFamily.SwitchPro => ButtonLabelStyle.Nintendo,
+        _ => ButtonLabelStyle.Xbox,
+    };
 }

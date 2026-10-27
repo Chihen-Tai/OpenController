@@ -79,6 +79,10 @@ public sealed class ControllerVisual : ThemedElement
         nameof(ShowLabels), typeof(bool), typeof(ControllerVisual),
         new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty FamilyProperty = DependencyProperty.Register(
+        nameof(Family), typeof(ControllerFamily), typeof(ControllerVisual),
+        new FrameworkPropertyMetadata(ControllerFamily.Unknown, FrameworkPropertyMetadataOptions.AffectsRender));
+
     public ControllerVisual()
     {
         AutomationProperties.SetName(this, "Controller input visualization");
@@ -99,6 +103,12 @@ public sealed class ControllerVisual : ThemedElement
     public bool ShowGuide { get => (bool)GetValue(ShowGuideProperty); set => SetValue(ShowGuideProperty, value); }
 
     public bool ShowLabels { get => (bool)GetValue(ShowLabelsProperty); set => SetValue(ShowLabelsProperty, value); }
+
+    /// <summary>
+    /// Controller family whose button names (and face-button colors) are printed. The drawing keeps the Xbox
+    /// silhouette; buttons are matched by position (PlayStation Cross / Nintendo B sit where Xbox A sits).
+    /// </summary>
+    public ControllerFamily Family { get => (ControllerFamily)GetValue(FamilyProperty); set => SetValue(FamilyProperty, value); }
 
     // ------------------------------------------------------------------ geometry
 
@@ -249,20 +259,23 @@ public sealed class ControllerVisual : ThemedElement
         GamepadState s = IsConnected ? State : default;
         Brush accent = B("Accent");
 
-        DrawTrigger(dc, s_leftTrigger, s.LeftTrigger, new Point(188, 8), "LT");
-        DrawTrigger(dc, s_rightTrigger, s.RightTrigger, new Point(DesignWidth - 188, 8), "RT");
+        ControllerFamily family = Family;
+        string L(GamepadControl c) => c.ShortLabel(family);
+
+        DrawTrigger(dc, s_leftTrigger, s.LeftTrigger, new Point(188, 8), L(GamepadControl.LeftTrigger));
+        DrawTrigger(dc, s_rightTrigger, s.RightTrigger, new Point(DesignWidth - 188, 8), L(GamepadControl.RightTrigger));
         DrawBody(dc);
-        DrawBumper(dc, s_leftBumper, I(Part.LB), "LB", new Point(94, 72), HorizontalAlignment.Right);
-        DrawBumper(dc, s_rightBumper, I(Part.RB), "RB", new Point(DesignWidth - 94, 72), HorizontalAlignment.Left);
+        DrawBumper(dc, s_leftBumper, I(Part.LB), L(GamepadControl.LeftShoulder), new Point(94, 72), HorizontalAlignment.Right);
+        DrawBumper(dc, s_rightBumper, I(Part.RB), L(GamepadControl.RightShoulder), new Point(DesignWidth - 94, 72), HorizontalAlignment.Left);
 
         DrawStick(dc, LeftStickCenter, s.LeftX, s.LeftY, I(Part.L3), OutputState.LeftX, OutputState.LeftY);
         DrawStick(dc, RightStickCenter, s.RightX, s.RightY, I(Part.R3), OutputState.RightX, OutputState.RightY);
         DrawDPad(dc, accent);
 
-        DrawFaceButton(dc, new Point(FaceCenter.X, FaceCenter.Y + FaceSpacing), "A", "Pad.FaceA", I(Part.A));
-        DrawFaceButton(dc, new Point(FaceCenter.X + FaceSpacing, FaceCenter.Y), "B", "Pad.FaceB", I(Part.B));
-        DrawFaceButton(dc, new Point(FaceCenter.X - FaceSpacing, FaceCenter.Y), "X", "Pad.FaceX", I(Part.X));
-        DrawFaceButton(dc, new Point(FaceCenter.X, FaceCenter.Y - FaceSpacing), "Y", "Pad.FaceY", I(Part.Y));
+        DrawFaceButton(dc, new Point(FaceCenter.X, FaceCenter.Y + FaceSpacing), L(GamepadControl.A), FaceColorKey(family, GamepadControl.A), I(Part.A));
+        DrawFaceButton(dc, new Point(FaceCenter.X + FaceSpacing, FaceCenter.Y), L(GamepadControl.B), FaceColorKey(family, GamepadControl.B), I(Part.B));
+        DrawFaceButton(dc, new Point(FaceCenter.X - FaceSpacing, FaceCenter.Y), L(GamepadControl.X), FaceColorKey(family, GamepadControl.X), I(Part.X));
+        DrawFaceButton(dc, new Point(FaceCenter.X, FaceCenter.Y - FaceSpacing), L(GamepadControl.Y), FaceColorKey(family, GamepadControl.Y), I(Part.Y));
 
         DrawRoundButton(dc, ViewCenter, I(Part.View), DrawViewGlyph);
         DrawRoundButton(dc, MenuCenter, I(Part.Menu), DrawMenuGlyph);
@@ -437,6 +450,20 @@ public sealed class ControllerVisual : ThemedElement
         dc.Pop();
     }
 
+    /// <summary>Xbox: green/red/blue/yellow; PlayStation: blue Cross, red Circle, pink Square, green Triangle; Nintendo: plain.</summary>
+    private static string FaceColorKey(ControllerFamily family, GamepadControl control) => family.LabelStyle() switch
+    {
+        ButtonLabelStyle.PlayStation => control switch
+        {
+            GamepadControl.A => "Pad.FaceX",
+            GamepadControl.B => "Pad.FaceB",
+            GamepadControl.X => "Pad.FaceSquare",
+            _ => "Pad.FaceA",
+        },
+        ButtonLabelStyle.Nintendo => "Pad.FacePlain",
+        _ => "Pad.Face" + control,
+    };
+
     private void DrawFaceButton(DrawingContext dc, Point c, string letter, string colorKey, double pressed)
     {
         const double r = 16.5;
@@ -449,14 +476,48 @@ public sealed class ControllerVisual : ThemedElement
         };
         dc.DrawEllipse(face, P("Pad.Outline", 1), c, r, r);
         dc.DrawEllipse(null, P("Pad.ButtonRing", 0.8), c, r - 1.5, r - 1.5);
-        DrawText(dc, letter, new Point(c.X, c.Y + 0.5), 17, B(colorKey), HorizontalAlignment.Center, VerticalAlignment.Center, UiFontSemibold);
+        DrawFaceMark(dc, c, letter, B(colorKey));
 
         if (pressed > 0)
         {
             dc.PushOpacity(pressed);
             dc.DrawEllipse(B(colorKey), null, c, r, r);
-            DrawText(dc, letter, new Point(c.X, c.Y + 0.5), 17, Brushes.White, HorizontalAlignment.Center, VerticalAlignment.Center, UiFontSemibold);
+            DrawFaceMark(dc, c, letter, Brushes.White);
             dc.Pop();
+        }
+    }
+
+    /// <summary>A letter, or for PlayStation symbols an equally sized vector shape (font glyphs vary too much in size).</summary>
+    private void DrawFaceMark(DrawingContext dc, Point c, string letter, Brush brush)
+    {
+        var pen = new Pen(brush, 2.2) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round };
+        const double h = 6.5;
+        switch (letter)
+        {
+            case "✕":
+                dc.DrawLine(pen, new Point(c.X - h, c.Y - h), new Point(c.X + h, c.Y + h));
+                dc.DrawLine(pen, new Point(c.X - h, c.Y + h), new Point(c.X + h, c.Y - h));
+                break;
+            case "○":
+                dc.DrawEllipse(null, pen, c, h + 0.5, h + 0.5);
+                break;
+            case "□":
+                dc.DrawRectangle(null, pen, new Rect(c.X - h + 0.5, c.Y - h + 0.5, 2 * h - 1, 2 * h - 1));
+                break;
+            case "△":
+                var tri = new StreamGeometry();
+                using (StreamGeometryContext g = tri.Open())
+                {
+                    g.BeginFigure(new Point(c.X, c.Y - h - 0.5), false, true);
+                    g.LineTo(new Point(c.X + h + 1, c.Y + h - 1), true, true);
+                    g.LineTo(new Point(c.X - h - 1, c.Y + h - 1), true, true);
+                }
+                tri.Freeze();
+                dc.DrawGeometry(null, pen, tri);
+                break;
+            default:
+                DrawText(dc, letter, new Point(c.X, c.Y + 0.5), 17, brush, HorizontalAlignment.Center, VerticalAlignment.Center, UiFontSemibold);
+                break;
         }
     }
 
