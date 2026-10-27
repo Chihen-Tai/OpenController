@@ -36,7 +36,8 @@
                             <ComboBox Grid.Column="1" ItemsSource="{Binding Settings.Languages}" SelectedItem="{Binding Settings.Language}" Width="200"
                                       HorizontalAlignment="Left" AutomationProperties.Name="{l:T Settings.Language}" />
                         </Grid>
-                        <CheckBox Style="{StaticResource Check}" Margin="0,8,0,4" Content="{l:T Settings.MinimizeToTray}" IsChecked="{Binding Settings.MinimizeToTray}" />
+                        <CheckBox Style="{StaticResource Check}" Margin="0,8,0,4" Content="{l:T Settings.CloseToTray}" IsChecked="{Binding Settings.CloseToTray}" />
+                        <CheckBox Style="{StaticResource Check}" Content="{l:T Settings.MinimizeToTray}" IsChecked="{Binding Settings.MinimizeToTray}" />
                         <CheckBox Style="{StaticResource Check}" Content="{l:T Settings.AutoSwitch}" IsChecked="{Binding Settings.AutoSwitchProfiles}" />
                     </StackPanel>
                 </c:Card>

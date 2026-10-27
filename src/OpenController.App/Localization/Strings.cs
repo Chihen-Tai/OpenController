@@ -301,7 +301,10 @@ internal static class Strings
         // Settings
         ["Settings.General"] = "General",
         ["Settings.Language"] = "Language",
-        ["Settings.MinimizeToTray"] = "Minimize / close to the notification area",
+        ["Settings.MinimizeToTray"] = "Minimizing also hides the window to the notification area",
+        ["Settings.CloseToTray"] = "Closing the window keeps OpenController running in the notification area (exit from the tray icon menu)",
+        ["Tray.StillRunningTitle"] = "OpenController is still running",
+        ["Tray.StillRunning"] = "It keeps watching battery and the overlay shortcut. Click the tray icon to open it; right-click → Exit to quit.",
         ["Settings.AutoSwitch"] = "Switch profiles automatically (per game / per controller)",
         ["Settings.Performance"] = "Performance",
         ["Settings.SamplingRate"] = "Input sampling rate",
@@ -743,7 +746,10 @@ internal static class Strings
 
         ["Settings.General"] = "一般",
         ["Settings.Language"] = "語言",
-        ["Settings.MinimizeToTray"] = "最小化／關閉時縮到通知區域",
+        ["Settings.MinimizeToTray"] = "最小化時也縮到通知區域",
+        ["Settings.CloseToTray"] = "關閉視窗時縮到通知區域繼續執行（從通知區域圖示的選單結束）",
+        ["Tray.StillRunningTitle"] = "OpenController 仍在執行",
+        ["Tray.StillRunning"] = "會繼續監看電量和遊戲內顯示的快速鍵。點通知區域的圖示可以打開，按右鍵 → 結束才會真的關掉。",
         ["Settings.AutoSwitch"] = "自動切換設定檔（依遊戲／依控制器）",
         ["Settings.Performance"] = "效能",
         ["Settings.SamplingRate"] = "輸入取樣率",

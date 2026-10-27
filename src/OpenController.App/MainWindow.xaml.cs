@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using OpenController.App.Localization;
 using OpenController.App.Services;
 using OpenController.App.ViewModels;
 
@@ -86,10 +87,15 @@ public partial class MainWindow : Window
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (!_exiting && _services.Settings.MinimizeToTray)
+        if (!_exiting && _services.Settings.CloseToTray)
         {
             e.Cancel = true;
             Hide();
+            if (!_services.Settings.TrayHintShown)
+            {
+                _vm.Tray?.Inform(Loc.T("Tray.StillRunningTitle"), Loc.T("Tray.StillRunning"));
+                _services.UpdateSettings(s => s with { TrayHintShown = true });
+            }
             return;
         }
         CompositionTarget.Rendering -= OnRendering;

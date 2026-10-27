@@ -32,7 +32,12 @@ public sealed class TrayIcon : IDisposable
             Visible = true,
             ContextMenuStrip = menu,
         };
-        _icon.DoubleClick += (_, _) => open();
+        // A single left click opens the window (right click shows the menu).
+        _icon.MouseClick += (_, e) =>
+        {
+            if (e.Button == WinForms.MouseButtons.Left)
+                open();
+        };
     }
 
     public void SetMenuText(string open, string exit)
@@ -49,6 +54,10 @@ public sealed class TrayIcon : IDisposable
 
     public void Notify(string title, string message) =>
         _icon.ShowBalloonTip(5000, title, message, WinForms.ToolTipIcon.Warning);
+
+    /// <summary>Informational notification (no warning icon).</summary>
+    public void Inform(string title, string message) =>
+        _icon.ShowBalloonTip(5000, title, message, WinForms.ToolTipIcon.Info);
 
     public void Dispose()
     {

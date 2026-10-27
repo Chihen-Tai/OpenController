@@ -27,6 +27,10 @@ public sealed record AppSettings
     /// <summary>Switch profiles automatically based on the foreground application / controller association.</summary>
     public bool AutoSwitchProfiles { get; init; }
     public bool MinimizeToTray { get; init; }
+    /// <summary>Closing the window keeps the app running in the notification area; Exit is in the tray menu.</summary>
+    public bool CloseToTray { get; init; } = true;
+    /// <summary>The "still running in the notification area" notice was shown once.</summary>
+    public bool TrayHintShown { get; init; }
     /// <summary>Show the single simplified page instead of the full set of tabs.</summary>
     public bool SimpleMode { get; init; }
     /// <summary>Holding L3 + R3 toggles the in-game overlay.</summary>

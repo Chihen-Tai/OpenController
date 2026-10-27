@@ -112,6 +112,12 @@ public sealed class SettingsViewModel : ObservableObject
         set => Change(s => s with { AutoSwitchProfiles = value });
     }
 
+    public bool CloseToTray
+    {
+        get => _s.Settings.CloseToTray;
+        set => Change(s => s with { CloseToTray = value });
+    }
+
     public bool MinimizeToTray
     {
         get => _s.Settings.MinimizeToTray;

@@ -155,4 +155,23 @@ public class MultiControllerTests
             Directory.Delete(dir, recursive: true);
         }
     }
+
+    [Fact]
+    public void SettingsLoad_FileFromOlderVersion_ClosesToTray()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "xcc-test-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string file = Path.Combine(dir, "settings.json");
+            File.WriteAllText(file, """{ "schemaVersion": 1, "language": "zh-TW", "minimizeToTray": false }""");
+            AppSettings s = new AppSettingsStore(file).Load().Settings;
+            Assert.True(s.CloseToTray);
+            Assert.False(s.TrayHintShown);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }
